@@ -1,0 +1,7 @@
+vendor/
+storage/
+tests/
+config/
+resources/
+nbproject/
+*.env
