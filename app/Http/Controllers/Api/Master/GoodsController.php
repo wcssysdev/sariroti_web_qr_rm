@@ -196,32 +196,33 @@ class GoodsController extends Controller {
                 "value" => $plant_code
             ]
         ];
-
+        $startdate = date("Y-m-") . "01";
         if (!isset($request->start_date) || $request->start_date == "") {
-            $request->start_date = date("Y-m-") . "01";
-        }
-        if (isset($request->start_date) && $request->start_date != "") {
-            $conditions = array_merge($conditions, [
-                [
-                    "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
-                    "operator" => ">=",
-                    "value" => $request->start_date
-                ]
-            ]);
+            
+        } else {
+            $startdate = $request->start_date;
         }
 
+        $enddate = date("Y-m-d");
         if (!isset($request->end_date) || $request->end_date == "") {
-            $request->end_date = date("Y-m-d");
+            
+        } else {
+            $enddate = $request->end_date;
         }
-        if (isset($request->end_date) && $request->end_date != "") {
-            $conditions = array_merge($conditions, [
-                [
-                    "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
-                    "operator" => "<=",
-                    "value" => $request->end_date
-                ]
-            ]);
-        }
+        $conditions = array_merge($conditions, [
+            [
+                "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
+                "operator" => ">=",
+                "value" => $startdate
+            ]
+        ]);
+        $conditions = array_merge($conditions, [
+            [
+                "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
+                "operator" => "<=",
+                "value" => $enddate
+            ]
+        ]);
 
         if (isset($request->plant_code) && $request->plant_code != "") {
             $conditions = array_merge($conditions, [
@@ -234,11 +235,48 @@ class GoodsController extends Controller {
         }
 
         $po_gi_non_zret = std_get([
-            "select" => "TR_PO_HEADER.*",
+            "select" => [
+                "TR_PO_HEADER_ID",
+                "TR_PO_HEADER_NUMBER",
+                "TR_PO_HEADER_TYPE",
+                "TR_PO_HEADER_STATUS",
+                "TR_PO_HEADER_VENDOR",
+                "TR_PO_HEADER_SUP_PLANT",
+                "TR_PO_HEADER_FLAG",
+                "TR_PO_HEADER_CREATED_BY",
+                "TR_PO_HEADER_CREATED_TIMESTAMP",
+                "TR_PO_DETAIL_MATERIAL_LINE_NUM",
+                "TR_PO_DETAIL_MATERIAL_CODE",
+                "TR_PO_DETAIL_MATERIAL_NAME",
+                "TR_PO_DETAIL_MATERIAL_BATCH",
+                "TR_PO_DETAIL_QTY_ORDER",
+                "TR_PO_DETAIL_QTY_DELIV",
+                "TR_PO_DETAIL_UOM",
+                "TR_PO_DETAIL_SLOC",
+                "TR_PO_DETAIL_PLANT_RCV",
+                "TR_PO_DETAIL_ID",
+                "MA_VENDOR.MA_VENDOR_NAME"
+            ],
             "table_name" => "TR_PO_HEADER",
+            "join" => [
+                [
+                    "join_type" => "inner",
+                    "table_name" => "TR_PO_DETAIL",
+                    "on1" => "TR_PO_HEADER.TR_PO_HEADER_NUMBER",
+                    "operator" => "=",
+                    "on2" => "TR_PO_DETAIL.TR_PO_DETAIL_PO_HEADER_NUMBER",
+                ],
+                [
+                    "join_type" => "LEFT",
+                    "table_name" => "MA_VENDOR",
+                    "on1" => "MA_VENDOR.MA_VENDOR_CODE",
+                    "operator" => "=",
+                    "on2" => "TR_PO_HEADER.TR_PO_HEADER_VENDOR",
+                ],
+            ],
+//            'dump' => true,
             "where" => $conditions
         ]);
-
         $conds = [
             [
                 "field_name" => "TR_PO_HEADER_TYPE",
@@ -267,31 +305,21 @@ class GoodsController extends Controller {
             ]
         ];
 
-        if (!isset($request->start_date) || $request->start_date == "") {
-            $request->start_date = date("Y-m-") . "01";
-        }
-        if (isset($request->start_date) && $request->start_date != "") {
-            $conds = array_merge($conds, [
-                [
-                    "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
-                    "operator" => ">=",
-                    "value" => $request->start_date
-                ]
-            ]);
-        }
+        $conds = array_merge($conds, [
+            [
+                "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
+                "operator" => ">=",
+                "value" => $startdate
+            ]
+        ]);
 
-        if (!isset($request->end_date) || $request->end_date == "") {
-            $request->end_date = date("Y-m-d");
-        }
-        if (isset($request->end_date) && $request->end_date != "") {
-            $conds = array_merge($conds, [
-                [
-                    "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
-                    "operator" => "<=",
-                    "value" => $request->end_date
-                ]
-            ]);
-        }
+        $conds = array_merge($conds, [
+            [
+                "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
+                "operator" => "<=",
+                "value" => $enddate
+            ]
+        ]);
 
         if (isset($request->plant_code) && $request->plant_code != "") {
             $conds = array_merge($conds, [
@@ -304,7 +332,28 @@ class GoodsController extends Controller {
         }
 
         $po_gi_data_zret = std_get([
-            "select" => ["TR_PO_HEADER.*", "MA_VENDOR.MA_VENDOR_NAME"],
+            "select" => [
+                "TR_PO_HEADER_ID",
+                "TR_PO_HEADER_NUMBER",
+                "TR_PO_HEADER_TYPE",
+                "TR_PO_HEADER_STATUS",
+                "TR_PO_HEADER_VENDOR",
+                "TR_PO_HEADER_SUP_PLANT",
+                "TR_PO_HEADER_FLAG",
+                "TR_PO_HEADER_CREATED_BY",
+                "TR_PO_HEADER_CREATED_TIMESTAMP",
+                "TR_PO_DETAIL_MATERIAL_LINE_NUM",
+                "TR_PO_DETAIL_MATERIAL_CODE",
+                "TR_PO_DETAIL_MATERIAL_NAME",
+                "TR_PO_DETAIL_MATERIAL_BATCH",
+                "TR_PO_DETAIL_QTY_ORDER",
+                "TR_PO_DETAIL_QTY_DELIV",
+                "TR_PO_DETAIL_UOM",
+                "TR_PO_DETAIL_SLOC",
+                "TR_PO_DETAIL_PLANT_RCV",
+                "TR_PO_DETAIL_ID",
+                "MA_VENDOR.MA_VENDOR_NAME"
+            ],
             "table_name" => "TR_PO_HEADER",
             "join" => [
                 [
@@ -326,9 +375,38 @@ class GoodsController extends Controller {
             "distinct" => true
         ]);
 
+        $data_non_zret = [];
+        foreach ($po_gi_non_zret as $non) {
+            $details = [];
+            foreach ($non as $nonkey => $nonval) {
+                if (strpos($nonkey, 'DETAIL_') === FALSE) {
+                    if (empty($data_non_zret[$non['TR_PO_HEADER_NUMBER']][$nonkey])) {
+                        $data_non_zret[$non['TR_PO_HEADER_NUMBER']][$nonkey] = (($nonval) ? $nonval : "");
+                    }
+                } else {
+                    $details[$nonkey] = $nonval;
+                }
+            }
+            $data_non_zret[$non['TR_PO_HEADER_NUMBER']]['materials'][] = $details;
+        }
+        $data_zret = [];
+        foreach ($po_gi_data_zret as $non) {
+            $details = [];
+            foreach ($non as $nonkey => $nonval) {
+                if (strpos($nonkey, 'DETAIL_') === FALSE) {
+                    if (empty($data_zret[$non['TR_PO_HEADER_NUMBER']][$nonkey])) {
+                        $data_zret[$non['TR_PO_HEADER_NUMBER']][$nonkey] = (($nonval) ? $nonval : "");
+                    }
+                } else {
+                    $details[$nonkey] = $nonval;
+                }
+            }
+            $data_zret[$non['TR_PO_HEADER_NUMBER']]['materials'][] = $details;
+        }
         return response()->json([
                     "status" => "OK",
-                    "data" => array_merge($po_gi_non_zret, $po_gi_data_zret)
+                    "params" => ["plant_code" => $request->plant_code, "start_date" => $request->start_date, "end_date" => $request->end_date],
+                    "data" => array_merge(array_filter($data_non_zret), array_filter($data_zret))
                         ], 200);
     }
 
@@ -402,7 +480,7 @@ class GoodsController extends Controller {
         $dumpped = TRUE;
         if (isset($request->dump) && $request->dump != "") {
             $dumpped = $request->dump;
-        }        
+        }
         $po_gr_data = std_get([
             "select" => ["TR_PO_HEADER.*", "MA_VENDOR.MA_VENDOR_NAME"],
             "table_name" => "TR_PO_HEADER",
@@ -451,7 +529,7 @@ class GoodsController extends Controller {
                     "data" => $po_header
                         ], 200);
     }
-    
+
     public function get_materials(Request $request) {
         $materials = std_get([
             "select" => ["TR_PO_DETAIL_ID", "TR_PO_DETAIL_MATERIAL_CODE", "TR_PO_DETAIL_MATERIAL_NAME"],
@@ -514,79 +592,78 @@ class GoodsController extends Controller {
                     "status" => "OK",
                     "data" => $select2
                         ], 200);
-    } 
-    
-function get_list_gr_data($material_code, $plant_code) {
+    }
+
+    function get_list_gr_data($material_code, $plant_code) {
 //    dd([$material_code,$plant_code]);
-    return std_get([
-        "select" => ["*"],
-        "table_name" => "TR_GR_HEADER",
-        "join" => [
-            [
-                "join_type" => "inner",
-                "table_name" => "TR_GR_DETAIL",
-                "on1" => "TR_GR_HEADER.TR_GR_HEADER_ID",
-                "operator" => "=",
-                "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
+        return std_get([
+            "select" => ["*"],
+            "table_name" => "TR_GR_HEADER",
+            "join" => [
+                [
+                    "join_type" => "inner",
+                    "table_name" => "TR_GR_DETAIL",
+                    "on1" => "TR_GR_HEADER.TR_GR_HEADER_ID",
+                    "operator" => "=",
+                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
+                ],
+                [
+                    "join_type" => "left",
+                    "table_name" => "TR_GR_DETAIL_LOCK",
+                    "on1" => "TR_GR_DETAIL_LOCK.TR_GR_DETAIL_LOCK_GR_DETAIL_ID",
+                    "operator" => "=",
+                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
+                ]
             ],
-            [
-                "join_type" => "left",
-                "table_name" => "TR_GR_DETAIL_LOCK",
-                "on1" => "TR_GR_DETAIL_LOCK.TR_GR_DETAIL_LOCK_GR_DETAIL_ID",
-                "operator" => "=",
-                "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
-            ]
-        ],
-        "where" => [
-            [
-                "field_name" => "TR_GR_DETAIL_MATERIAL_CODE",
-                "operator" => "=",
-                "value" => $material_code
+            "where" => [
+                [
+                    "field_name" => "TR_GR_DETAIL_MATERIAL_CODE",
+                    "operator" => "=",
+                    "value" => $material_code
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_UNLOADING_PLANT",
+                    "operator" => "=",
+                    "value" => $plant_code
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_LEFT_QTY",
+                    "operator" => ">",
+                    "value" => 0
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_STATUS",
+                    "operator" => "!=",
+                    "value" => "ERROR"
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_STATUS",
+                    "operator" => "!=",
+                    "value" => "PENDING"
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_LOCK_ID",
+                    "operator" => "=",
+                    "value" => null
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_IS_ADJUSTMENT",
+                    "operator" => "=",
+                    "value" => false
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_IS_CANCELLED",
+                    "operator" => "=",
+                    "value" => false
+                ]
             ],
-            [
-                "field_name" => "TR_GR_DETAIL_UNLOADING_PLANT",
-                "operator" => "=",
-                "value" => $plant_code
+            "order_by" => [
+                [
+                    "field" => "TR_GR_HEADER_CREATED_TIMESTAMP",
+                    "type" => "ASC",
+                ]
             ],
-            [
-                "field_name" => "TR_GR_DETAIL_LEFT_QTY",
-                "operator" => ">",
-                "value" => 0
-            ],
-            [
-                "field_name" => "TR_GR_HEADER_STATUS",
-                "operator" => "!=",
-                "value" => "ERROR"
-            ],
-            [
-                "field_name" => "TR_GR_HEADER_STATUS",
-                "operator" => "!=",
-                "value" => "PENDING"
-            ],
-            [
-                "field_name" => "TR_GR_DETAIL_LOCK_ID",
-                "operator" => "=",
-                "value" => null
-            ],
-            [
-                "field_name" => "TR_GR_HEADER_IS_ADJUSTMENT",
-                "operator" => "=",
-                "value" => false
-            ],
-            [
-                "field_name" => "TR_GR_DETAIL_IS_CANCELLED",
-                "operator" => "=",
-                "value" => false
-            ]
-        ],
-        "order_by" => [
-            [
-                "field" => "TR_GR_HEADER_CREATED_TIMESTAMP",
-                "type" => "ASC",
-            ]
-        ],
-        "first_row" => false
-    ]);
-}
-    
+            "first_row" => false
+        ]);
+    }
 }
