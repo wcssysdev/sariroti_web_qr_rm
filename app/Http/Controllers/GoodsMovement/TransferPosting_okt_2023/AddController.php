@@ -1030,13 +1030,7 @@ class AddController extends Controller
                     ]
                 ]);
             }
-        /**
-         * 2023 November
-         * waluyosejati99@gmail.com
-         * Fitur TP Plan dinon-aktifkan
-         * Save TP langsung create CSV untuk siap posting
-         */            
-            if (in_array($request->TR_TP_HEADER_MVT_CODE,['511','311'])) {
+            if ($request->TR_TP_HEADER_MVT_CODE == "511") {
                 generate_tp_csv($tp_id, session("plant"));
             }
         }
