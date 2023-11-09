@@ -813,14 +813,6 @@ class AddController extends Controller
             ]);
         }
 
-        /**
-         * 2023 November
-         * waluyosejati99@gmail.com
-         * Fitur GI Plan dinon-aktifkan
-         * Save GI langsung create CSV untuk siap posting
-         */
-        generate_gi_csv($gi_id, $plant_code);
-        
         return response()->json([
             'message' => "GI Successfully Created"
         ],200);
