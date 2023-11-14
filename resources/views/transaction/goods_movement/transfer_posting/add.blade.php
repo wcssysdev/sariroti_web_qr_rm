@@ -45,7 +45,7 @@
                         
                         <div class="col-lg-3" id="posting_date_input">
                             <label>Posting Date:</label>
-                            <input type="text" class="form-control date" data-date-value="{{ $header_posting_date }}" id="expired_date_header" name="TR_TP_HEADER_PSTG_DATE">
+                            <input type="text" class="form-control date" value="{{ $header_posting_date }}" placeholder="Input Posting Date" name="TR_TP_HEADER_PSTG_DATE">
                         </div>
 
                         <div class="col-lg-3" id="cost_center_div">
@@ -65,6 +65,20 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <div class="col-lg-3">
+                            <label>Bill of Landing:</label>
+                            <input type="text" class="form-control" name="TR_TP_HEADER_BOL"
+                                   placeholder="Input Bill of Landing (If Any)" value="{{ $header_bill_of_landing }}">
+                        </div>                        
+                        <div class="col-lg-4">
+                            <label>Delivery Notes: <span style="color:red">*</span></label>
+                            <div class="input-group">
+                                <textarea type="text" class="form-control" name="TR_TP_HEADER_TXT"
+                                          placeholder="Input Note">{{ $header_note }}</textarea>
+                            </div>
+                        </div>
+                    </div>                    
                     <div class="form-group row pt-6">
                         <div class="col-lg-10">
                             <h3 class="card-label">Material:</h3>

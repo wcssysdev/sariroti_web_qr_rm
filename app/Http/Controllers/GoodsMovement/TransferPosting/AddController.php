@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\GoodsMovement\TransferPosting;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -8,8 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use DB;
 
-function get_gr_data($material_code, $plant_code, $movement_code)
-{
+function get_gr_data($material_code, $plant_code, $movement_code) {
     if ($movement_code == "551") {
         return get_tp_material([
             "select" => ["*"],
@@ -75,8 +75,7 @@ function get_gr_data($material_code, $plant_code, $movement_code)
             ],
             "first_row" => false
         ]);
-    }
-    else{
+    } else {
         return std_get([
             "select" => ["*"],
             "table_name" => "TR_GR_HEADER",
@@ -144,8 +143,7 @@ function get_gr_data($material_code, $plant_code, $movement_code)
     }
 }
 
-function get_lock_data()
-{
+function get_lock_data() {
     return std_get([
         "select" => ["*"],
         "table_name" => "TR_GR_DETAIL_LOCK",
@@ -174,13 +172,12 @@ function get_lock_data()
     ]);
 }
 
-class AddController extends Controller
-{
-    public function index(Request $request)
-    {
+class AddController extends Controller {
+
+    public function index(Request $request) {
         $lock_data = get_lock_data();
         $cost_center = get_cost_center([
-            "select" => ["MA_COSTCNTR_CODE","MA_COSTCNTR_DESC"],
+            "select" => ["MA_COSTCNTR_CODE", "MA_COSTCNTR_DESC"],
             "table_name" => "MA_COSTCNTR",
             "order_by" => [
                 [
@@ -192,7 +189,7 @@ class AddController extends Controller
         ]);
 
         $gl_account = std_get([
-            "select" => ["MA_GLACC_CODE","MA_GLACC_DESC"],
+            "select" => ["MA_GLACC_CODE", "MA_GLACC_DESC"],
             "table_name" => "MA_GLACC",
             "order_by" => [
                 [
@@ -229,15 +226,16 @@ class AddController extends Controller
             "header_cost_center" => $request->header_cost_center,
             "header_gl_account" => $request->header_gl_account,
             "header_posting_date" => $request->header_posting_date,
+            "header_bill_of_landing" => $request->TR_TP_HEADER_BOL,
+            "header_note" => $request->TR_TP_HEADER_TXT,
             "cost_center" => $cost_center,
             "gl_account" => $gl_account
         ]);
     }
 
-    public function get_materials(Request $request)
-    {
+    public function get_materials(Request $request) {
         $materials = std_get([
-            "select" => ["MA_MATL_CODE as id","MA_MATL_DESC as text"],
+            "select" => ["MA_MATL_CODE as id", "MA_MATL_DESC as text"],
             "table_name" => "MA_MATL",
             "where" => [
                 [
@@ -258,28 +256,26 @@ class AddController extends Controller
             foreach ($materials as $row) {
                 $materials_adj[] = [
                     "id" => $row["id"],
-                    "text" => $row["id"]." - ".$row["text"]
+                    "text" => $row["id"] . " - " . $row["text"]
                 ];
             }
             return response()->json([
-                "status" => "OK",
-                "data" => $materials_adj,
-                "sloc_data" => get_sloc(session("plant"))
-            ],200);
-        }
-        else{
+                        "status" => "OK",
+                        "data" => $materials_adj,
+                        "sloc_data" => get_sloc(session("plant"))
+                            ], 200);
+        } else {
             return response()->json([
-                "status" => "OK",
-                "data" => [],
-                "sloc_data" => get_sloc(session("plant"))
-            ],200);
+                        "status" => "OK",
+                        "data" => [],
+                        "sloc_data" => get_sloc(session("plant"))
+                            ], 200);
         }
     }
 
-    public function get_materials_y21(Request $request)
-    {
+    public function get_materials_y21(Request $request) {
         $materials = std_get([
-            "select" => ["MA_MATL_CODE as id","MA_MATL_DESC as text"],
+            "select" => ["MA_MATL_CODE as id", "MA_MATL_DESC as text"],
             "table_name" => "MA_MATL",
             "where" => [
                 [
@@ -300,26 +296,24 @@ class AddController extends Controller
             foreach ($materials as $row) {
                 $materials_adj[] = [
                     "id" => $row["id"],
-                    "text" => $row["id"]." - ".$row["text"]
+                    "text" => $row["id"] . " - " . $row["text"]
                 ];
             }
             return response()->json([
-                "status" => "OK",
-                "data" => $materials_adj,
-                "sloc_data" => get_sloc(session("plant"))
-            ],200);
-        }
-        else{
+                        "status" => "OK",
+                        "data" => $materials_adj,
+                        "sloc_data" => get_sloc(session("plant"))
+                            ], 200);
+        } else {
             return response()->json([
-                "status" => "OK",
-                "data" => [],
-                "sloc_data" => get_sloc(session("plant"))
-            ],200);
+                        "status" => "OK",
+                        "data" => [],
+                        "sloc_data" => get_sloc(session("plant"))
+                            ], 200);
         }
     }
 
-    public function get_material_batch_y21(Request $request)
-    {
+    public function get_material_batch_y21(Request $request) {
         $material = std_get([
             "select" => ["MA_MATL_BATCH as id", "MA_MATL_BATCH as text"],
             "table_name" => "MA_MATL",
@@ -362,35 +356,33 @@ class AddController extends Controller
         ]);
 
         return response()->json([
-            "status" => "OK",
-            "data" => [
-                "batch" => $material,
-                "base_uom" => $base_material["MA_MATL_UOM"]
-            ]
-        ],200);
+                    "status" => "OK",
+                    "data" => [
+                        "batch" => $material,
+                        "base_uom" => $base_material["MA_MATL_UOM"]
+                    ]
+                        ], 200);
     }
-    
-    public function get_material_gr(Request $request)
-    {
+
+    public function get_material_gr(Request $request) {
         $gr_data = get_gr_data($request->material_code, session("plant"), $request->movement_type);
         $select2 = [];
         foreach ($gr_data as $row) {
             $select2 = array_merge($select2, [
                 [
                     "id" => $row["TR_GR_DETAIL_ID"],
-                    "text" => $row["TR_GR_DETAIL_ID"]." | ".number_format($row["TR_GR_DETAIL_LEFT_QTY"])." ".$row["TR_GR_DETAIL_BASE_UOM"]." | ".$row["TR_GR_DETAIL_SAP_BATCH"]." | ".$row["TR_GR_DETAIL_EXP_DATE"]
+                    "text" => $row["TR_GR_DETAIL_ID"] . " | " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $row["TR_GR_DETAIL_SAP_BATCH"] . " | " . $row["TR_GR_DETAIL_EXP_DATE"]
                 ]
             ]);
         }
 
         return response()->json([
-            "status" => "OK",
-            "data" => $select2
-        ],200);
+                    "status" => "OK",
+                    "data" => $select2
+                        ], 200);
     }
-    
-    public function get_material_status(Request $request)
-    {
+
+    public function get_material_status(Request $request) {
         $gr_data = std_get([
             "select" => ["TR_GR_DETAIL.*"],
             "table_name" => "TR_GR_HEADER",
@@ -419,17 +411,16 @@ class AddController extends Controller
         ]);
 
         return response()->json([
-            "status" => "OK",
-            "data" => $gr_data
-        ],200);
+                    "status" => "OK",
+                    "data" => $gr_data
+                        ], 200);
     }
 
-    public function save_material_validate_input($request)
-    {
-        $validate = Validator::make($request->all(),[
-            "gr_detail_id" => "required|max:255",
-            "posting_qty" => "required|max:255|regex:/^\d+(\.\d{1,2})?$/",
-            "TR_TP_DETAIL_SLOC" => "required|max:255"
+    public function save_material_validate_input($request) {
+        $validate = Validator::make($request->all(), [
+                    "gr_detail_id" => "required|max:255",
+                    "posting_qty" => "required|max:255|regex:/^\d+(\.\d{1,2})?$/",
+                    "TR_TP_DETAIL_SLOC" => "required|max:255"
         ]);
 
         $attributeNames = [
@@ -439,20 +430,19 @@ class AddController extends Controller
         ];
 
         $validate->setAttributeNames($attributeNames);
-        if($validate->fails()){
+        if ($validate->fails()) {
             $errors = $validate->errors();
             return $errors->all();
         }
         return true;
     }
 
-    public function save_material(Request $request)
-    {
+    public function save_material(Request $request) {
         $validation_res = $this->save_material_validate_input($request);
         if ($validation_res !== true) {
             return response()->json([
-                'message' => $validation_res
-            ],400);
+                        'message' => $validation_res
+                            ], 400);
         }
         $gr_data = std_get([
             "select" => ["*"],
@@ -482,24 +472,23 @@ class AddController extends Controller
             ]
         ]);
 
-        return redirect()->route("goods_movement_transfer_posting_add",[
-            'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
-            'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
-            'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
-            'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
+        return redirect()->route("goods_movement_transfer_posting_add", [
+                    'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
+                    'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
+                    'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
+                    'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
         ]);
     }
 
-    public function save_material_y21_validate_input($request)
-    {
-        $validate = Validator::make($request->all(),[
-            "material_code_y21" => "required|max:255",
-            "batch_sap_y21" => "max:255",
-            "expired_date_y21" => "required|max:10",
-            "posting_qty_y21" => "required|regex:/^\d+(\.\d{1,2})?$/",
-            "from_sloc_y21" => "required|max:255",
-            "to_sloc_y21" => "required|max:255",
-            "note_y21" => "max:1000",
+    public function save_material_y21_validate_input($request) {
+        $validate = Validator::make($request->all(), [
+                    "material_code_y21" => "required|max:255",
+                    "batch_sap_y21" => "max:255",
+                    "expired_date_y21" => "required|max:10",
+                    "posting_qty_y21" => "required|regex:/^\d+(\.\d{1,2})?$/",
+                    "from_sloc_y21" => "required|max:255",
+                    "to_sloc_y21" => "required|max:255",
+                    "note_y21" => "max:1000",
         ]);
 
         $attributeNames = [
@@ -513,20 +502,19 @@ class AddController extends Controller
         ];
 
         $validate->setAttributeNames($attributeNames);
-        if($validate->fails()){
+        if ($validate->fails()) {
             $errors = $validate->errors();
             return $errors->all();
         }
         return true;
     }
 
-    public function save_material_y21(Request $request)
-    {
+    public function save_material_y21(Request $request) {
         $validation_res = $this->save_material_y21_validate_input($request);
         if ($validation_res !== true) {
             return response()->json([
-                'message' => $validation_res
-            ],400);
+                        'message' => $validation_res
+                            ], 400);
         }
 
         $material = std_get([
@@ -564,54 +552,51 @@ class AddController extends Controller
             ]
         ]);
 
-        return redirect()->route("goods_movement_transfer_posting_add",[
-            'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
-            'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
-            'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
-            'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
+        return redirect()->route("goods_movement_transfer_posting_add", [
+                    'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
+                    'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
+                    'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
+                    'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
         ]);
     }
 
-    public function delete_material(Request $request)
-    {
+    public function delete_material(Request $request) {
         $delete_res = std_delete([
             "table_name" => "TR_GR_DETAIL_LOCK",
             "where" => [
                 "TR_GR_DETAIL_LOCK_ID" => $request->uniqid
             ]
         ]);
-        return redirect()->route("goods_movement_transfer_posting_add",[
-            'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
-            'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
-            'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
-            'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
+        return redirect()->route("goods_movement_transfer_posting_add", [
+                    'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
+                    'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
+                    'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
+                    'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
         ]);
     }
 
-    public function delete_material_y21(Request $request)
-    {
+    public function delete_material_y21(Request $request) {
         $delete_res = std_delete([
             "table_name" => "TR_TP_Y21_DETAIL_TEMP",
             "where" => [
                 "TR_TP_Y21_DETAIL_TEMP_ID" => $request->uniqid
             ]
         ]);
-        return redirect()->route("goods_movement_transfer_posting_add",[
-            'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
-            'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
-            'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
-            'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
+        return redirect()->route("goods_movement_transfer_posting_add", [
+                    'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
+                    'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
+                    'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
+                    'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
         ]);
     }
 
-    public function save_validate_input($request)
-    {
-        $validate = Validator::make($request->all(),[
-            "TR_TP_HEADER_MVT_CODE" => "required|in:311,Y21,551,411",
-            "TR_TP_COST_CENTER_CODE" => "max:255",
-            "TR_TP_GL_ACCOUNT_CODE" => "max:255",
-            "TR_TP_HEADER_PSTG_DATE" => "max:10",
-            // "TR_GI_HEADER_TXT" => "max:1000"
+    public function save_validate_input($request) {
+        $validate = Validator::make($request->all(), [
+                    "TR_TP_HEADER_MVT_CODE" => "required|in:311,Y21,551,411",
+                    "TR_TP_COST_CENTER_CODE" => "max:255",
+                    "TR_TP_GL_ACCOUNT_CODE" => "max:255",
+                    "TR_TP_HEADER_PSTG_DATE" => "max:10",
+                    "TR_TP_HEADER_TXT" => "required|max:1000"
         ]);
 
         $attributeNames = [
@@ -619,24 +604,23 @@ class AddController extends Controller
             "TR_TP_COST_CENTER_CODE" => "Cost Center Code",
             "TR_TP_GL_ACCOUNT_CODE" => "GL Account Code",
             "TR_TP_HEADER_PSTG_DATE" => "Posting Date",
-            // "TR_GI_HEADER_TXT" => "Note"
+            "TR_TP_HEADER_TXT" => "Note"
         ];
 
         $validate->setAttributeNames($attributeNames);
-        if($validate->fails()){
+        if ($validate->fails()) {
             $errors = $validate->errors();
             return $errors->all();
         }
         return true;
     }
 
-    public function save(Request $request)
-    {
+    public function save(Request $request) {
         $validation_res = $this->save_validate_input($request);
         if ($validation_res !== true) {
             return response()->json([
-                'message' => $validation_res
-            ],400);
+                        'message' => $validation_res
+                            ], 400);
         }
 
         $timestamp = date("Y-m-d H:i:s");
@@ -644,8 +628,8 @@ class AddController extends Controller
         if ($request->TR_TP_HEADER_MVT_CODE == "551" || $request->TR_TP_HEADER_MVT_CODE == "Y21") {
             if ($request->TR_TP_HEADER_PSTG_DATE == NULL || $request->TR_TP_HEADER_PSTG_DATE == "") {
                 return response()->json([
-                    'message' => "Posting Date is Required"
-                ],500);
+                            'message' => "Posting Date is Required"
+                                ], 500);
             }
         }
 
@@ -662,17 +646,16 @@ class AddController extends Controller
                 ],
                 "first_row" => false
             ]);
-        }
-        else{
+        } else {
             $posting_materials = get_lock_data();
         }
-        
+
         if ($posting_materials == NULL) {
             return response()->json([
-                'message' => "Posting Material Data Not Exist / Empty"
-            ],500);
+                        'message' => "Posting Material Data Not Exist / Empty"
+                            ], 500);
         }
-        
+
         if ($request->TR_TP_HEADER_MVT_CODE != "Y21") {
             $delete_status = false;
             foreach ($posting_materials as $row) {
@@ -688,22 +671,22 @@ class AddController extends Controller
             }
             if ($delete_status === true) {
                 return response()->json([
-                    'message' => "GR Locked data is already expired, Posting Material Will Be Repopulated!"
-                ],500);
+                            'message' => "GR Locked data is already expired, Posting Material Will Be Repopulated!"
+                                ], 500);
             }
         }
-        
+
         if ($request->TR_TP_HEADER_MVT_CODE == 551) {
             if ($request->TR_TP_COST_CENTER_CODE == null || $request->TR_TP_COST_CENTER_CODE == "") {
                 return response()->json([
-                    'message' => "Cost Center Is Required"
-                ],500);
+                            'message' => "Cost Center Is Required"
+                                ], 500);
             }
 
             if ($request->TR_TP_GL_ACCOUNT_CODE == null || $request->TR_TP_GL_ACCOUNT_CODE == "") {
                 return response()->json([
-                    'message' => "GL Account Is Required"
-                ],500);
+                            'message' => "GL Account Is Required"
+                                ], 500);
             }
         }
 
@@ -711,16 +694,25 @@ class AddController extends Controller
             foreach ($posting_materials as $row) {
                 if ($row["TR_GR_DETAIL_LEFT_QTY"] < $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"]) {
                     return response()->json([
-                        'message' => "Max Qty for ".$row["TR_GR_DETAIL_MATERIAL_CODE"]." ".$row["TR_GR_DETAIL_MATERIAL_NAME"]." is ".$row["TR_GR_DETAIL_LEFT_QTY"]." current input Qty is ".$row["TR_GR_DETAIL_LOCK_BOOKED_QTY"]
-                    ],500);
+                                'message' => "Max Qty for " . $row["TR_GR_DETAIL_MATERIAL_CODE"] . " " . $row["TR_GR_DETAIL_MATERIAL_NAME"] . " is " . $row["TR_GR_DETAIL_LEFT_QTY"] . " current input Qty is " . $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"]
+                                    ], 500);
                 }
             }
         }
-        
+
         $mobile_is_submit = false;
-        if ($request->TR_TP_HEADER_MVT_CODE == "Y21") {
-            $mobile_is_submit = true;
-        }
+        /**
+         * 2023 Nov
+         * waluyosejati99@gmail.com
+         * 
+         * TP Plan for mobile is disabled,
+         * TP from web can be directly posted to SAP
+         * So, there is no mobile submit
+         * 
+         */
+//        if ($request->TR_TP_HEADER_MVT_CODE == "Y21") {
+//            $mobile_is_submit = true;
+//        }
 
         $converted_date = null;
         if ($request->TR_TP_HEADER_PSTG_DATE != NULL && $request->TR_TP_HEADER_PSTG_DATE != "") {
@@ -734,8 +726,8 @@ class AddController extends Controller
                 "TR_TP_HEADER_SAP_DOC" => NULL,
                 "TR_TP_HEADER_PSTG_DATE" => $converted_date,
                 "TR_TP_HEADER_DOC_DATE" => date("Y-m-d"),
-                "TR_TP_HEADER_BOL" => NULL,
-                "TR_TP_HEADER_TXT" => NULL,
+                "TR_TP_HEADER_BOL" => $request->TR_TP_HEADER_BOL,
+                "TR_TP_HEADER_TXT" => $request->TR_TP_HEADER_TXT,
                 "TR_TP_HEADER_MVT_CODE" => $request->TR_TP_HEADER_MVT_CODE,
                 "TR_TP_HEADER_SAP_YEAR" => NULL,
                 "TR_TP_HEADER_STATUS" => "PENDING",
@@ -752,8 +744,8 @@ class AddController extends Controller
 
         if ($tp_id == false) {
             return response()->json([
-                'message' => "Error on saving TP header"
-            ],500);
+                        'message' => "Error on saving TP header"
+                            ], 500);
         }
 
         $count = 1;
@@ -769,7 +761,7 @@ class AddController extends Controller
                     $mobile_qty = $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"];
                     $mobile_uom = $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"];
                 }
-               
+
 
                 $posting_material_arr = array_merge($posting_material_arr, [
                     [
@@ -796,20 +788,16 @@ class AddController extends Controller
                     ]
                 ]);
 
-                if ($request->TR_TP_HEADER_MVT_CODE != "551")
-                {
+                if ($request->TR_TP_HEADER_MVT_CODE != "551") {
                     $count = $count + 2;
-                }
-                else
-                {
-                     $count++;
+                } else {
+                    $count++;
                 }
             }
-        }
-        else{
+        } else {
             $posting_material_arr = [];
             foreach ($posting_materials as $row) {
-                $qr_code_temp = session("plant")."-".uniqid();
+                $qr_code_temp = session("plant") . "-" . uniqid();
                 $y21_code_temp = uniqid();
                 $qr_code_codes_temp[] = $qr_code_temp;
                 $y21_unique_ids_temp[] = $y21_code_temp;
@@ -857,7 +845,7 @@ class AddController extends Controller
                     "table_name" => "TR_GR_DETAIL",
                     "where" => ["TR_GR_DETAIL_ID" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]],
                     "data" => [
-                        "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - '.$row["TR_GR_DETAIL_LOCK_BOOKED_QTY"])
+                        "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"])
                     ]
                 ]);
 
@@ -873,65 +861,8 @@ class AddController extends Controller
                         "created_by" => session("id")
                     ]);
                 }
-                
-
-                // if ($row["TR_GR_DETAIL_LOCK_BOOKED_SLOC"] == "1419" || $row["TR_GR_DETAIL_LOCK_BOOKED_SLOC"] == "1900") {
-                //     $gr_detail = std_get([
-                //         "select" => ["*"],
-                //         "table_name" => "TR_GR_DETAIL",
-                //         "where" => [
-                //             [
-                //                 "field_name" => "TR_GR_DETAIL_ID",
-                //                 "operator" => "=",
-                //                 "value" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"],
-                //             ]
-                //         ],
-                //         "first_row" => true
-                //     ]);
-                //     std_insert([
-                //         "table_name" => "TR_GR_DETAIL",
-                //         "data" => [
-                //             "TR_GR_DETAIL_HEADER_ID" => 1,
-                //             "TR_GR_DETAIL_MATERIAL_CODE" => $gr_detail["TR_GR_DETAIL_MATERIAL_CODE"],
-                //             "TR_GR_DETAIL_MATERIAL_NAME" => $gr_detail["TR_GR_DETAIL_MATERIAL_NAME"],
-                //             "TR_GR_DETAIL_SAP_BATCH" => $gr_detail["TR_GR_DETAIL_SAP_BATCH"],
-                //             "TR_GR_DETAIL_QTY" => NULL,
-                //             "TR_GR_DETAIL_UOM" => NULL,
-                //             "TR_GR_DETAIL_BASE_QTY" => $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
-                //             "TR_GR_DETAIL_BASE_UOM" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
-                //             "TR_GR_DETAIL_LEFT_QTY" => $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
-                //             "TR_GR_DETAIL_UNLOADING_PLANT" => $gr_detail["TR_GR_DETAIL_UNLOADING_PLANT"],
-                //             "TR_GR_DETAIL_GL_ACCOUNT" => $gr_detail["TR_GR_DETAIL_GL_ACCOUNT"],
-                //             "TR_GR_DETAIL_COST_CENTER" => $gr_detail["TR_GR_DETAIL_COST_CENTER"],
-                //             "TR_GR_DETAIL_EXP_DATE" => $gr_detail["TR_GR_DETAIL_EXP_DATE"],
-                //             "TR_GR_DETAIL_IMG_QRCODE" => NULL,
-                //             "TR_GR_DETAIL_NOTES" => NULL,
-                //             "TR_GR_DETAIL_PHOTO" => NULL,
-                //             "TR_GR_DETAIL_CREATED_BY" => session("id"),
-                //             "TR_GR_DETAIL_CREATED_TIMESTAMP" => $timestamp,
-                //             "TR_GR_DETAIL_UPDATED_BY" => NULL,
-                //             "TR_GR_DETAIL_UPDATED_TIMESTAMP" => NULL,
-                //             "TR_GR_DETAIL_QR_CODE_NUMBER" => get_gr_detail_qr($row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]),
-                //             "TR_GR_DETAIL_SLOC" => $gr_detail["TR_GR_DETAIL_SLOC"],
-                //             "TR_GR_DETAIL_PO_DETAIL_ID" => $gr_detail["TR_GR_DETAIL_PO_DETAIL_ID"],
-                //             "TR_GR_DETAIL_GR_REFERENCE" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]
-                //         ]
-                //     ]);
-
-                //     // insert_material_log([
-                //     //     "material_code" => $gr_detail["TR_GR_DETAIL_MATERIAL_CODE"],
-                //     //     "plant_code" => session("plant"),
-                //     //     "posting_date" => $request->TR_TP_HEADER_PSTG_DATE,
-                //     //     "movement_type" => $request->TR_TP_HEADER_MVT_CODE,
-                //     //     "gr_detail_id" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"],
-                //     //     "base_qty" => $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
-                //     //     "base_uom" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
-                //     //     "created_by" => session("id")
-                //     // ]);
-                // }
             }
-        }
-        else{
+        } else {
             $gr_id = std_insert_get_id([
                 "table_name" => "TR_GR_HEADER",
                 "data" => [
@@ -1019,8 +950,7 @@ class AddController extends Controller
                 ]
             ]);
             generate_tp_csv($tp_id, session("plant"));
-        }
-        else{
+        } else {
             //311 / 511
             foreach ($posting_materials as $row) {
                 std_delete([
@@ -1030,19 +960,19 @@ class AddController extends Controller
                     ]
                 ]);
             }
-        /**
-         * 2023 November
-         * waluyosejati99@gmail.com
-         * Fitur TP Plan dinon-aktifkan
-         * Save TP langsung create CSV untuk siap posting
-         */            
-            if (in_array($request->TR_TP_HEADER_MVT_CODE,['511','311'])) {
+            /**
+             * 2023 November
+             * waluyosejati99@gmail.com
+             * Fitur TP Plan dinon-aktifkan
+             * Save TP langsung create CSV untuk siap posting
+             */
+            if (in_array($request->TR_TP_HEADER_MVT_CODE, ['511', '311'])) {
                 generate_tp_csv($tp_id, session("plant"));
             }
         }
-        
+
         return response()->json([
-            'message' => "Posting Successfully Created"
-        ],200);
+                    'message' => "Posting Successfully Created"
+                        ], 200);
     }
 }
