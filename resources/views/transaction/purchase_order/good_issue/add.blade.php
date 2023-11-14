@@ -14,11 +14,11 @@
 
 @section('content')
 <form action="{{ route('purchase_order_good_issue_save') }}" method="POST"
-    data-get-materials-url="{{ route('purchase_order_good_issue_add_get_materials') }}"
-    data-get-material-status-url="{{ route('purchase_order_good_issue_add_get_material_status') }}" data-get-material-gr-url="{{ route('purchase_order_good_issue_add_get_material_gr') }}"
-    data-save-material-url="{{ route('purchase_order_good_issue_save_material') }}"
-    data-delete-material-url="{{ route('purchase_order_good_issue_delete_material') }}"
-    data-form-success-redirect="{{ route('purchase_order_good_issue_view') }}" id="form">
+      data-get-materials-url="{{ route('purchase_order_good_issue_add_get_materials') }}"
+      data-get-material-status-url="{{ route('purchase_order_good_issue_add_get_material_status') }}" data-get-material-gr-url="{{ route('purchase_order_good_issue_add_get_material_gr') }}"
+      data-save-material-url="{{ route('purchase_order_good_issue_save_material') }}"
+      data-delete-material-url="{{ route('purchase_order_good_issue_delete_material') }}"
+      data-form-success-redirect="{{ route('purchase_order_good_issue_view') }}" id="form">
     @csrf
     <input type="hidden" name="po_number" id="po_number" value="{{$po_number}}">
     <input type="hidden" name="uniqid" id="uniqid">
@@ -108,6 +108,24 @@
                                 <input type="text" class="form-control" readonly value="{{$movement_code}}">
                             </div>
                         </div>
+                        <div class="col-lg-2">
+                            <label>Posting Date: <span style="color:red">*</span></label>
+                            <input type="text" class="form-control date" name="TR_GI_HEADER_PSTG_DATE" placeholder="Input Posting Date" value="{{ $header_posting_date }}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-lg-3">
+                            <label>Bill of Landing:</label>
+                            <input type="text" class="form-control" name="TR_GI_HEADER_BOL"
+                                   placeholder="Input Bill of Landing (If Any)" value="{{ $header_bill_of_landing }}">
+                        </div>                        
+                        <div class="col-lg-4">
+                            <label>Delivery Notes: <span style="color:red">*</span></label>
+                            <div class="input-group">
+                                <textarea type="text" class="form-control" name="TR_GI_HEADER_TXT"
+                                          placeholder="Input Note">{{ $header_note }}</textarea>
+                            </div>
+                        </div>
                     </div>
                     <hr>
                     <div class="form-group row pt-6">
@@ -116,13 +134,13 @@
                         </div>
                         <div class="col-lg-2">
                             <button type="button" class="btn btn-primary" data-toggle="modal"
-                                data-target="#exampleModalCenter"><span class="fas fa-plus-circle"></span>&nbsp;
+                                    data-target="#exampleModalCenter"><span class="fas fa-plus-circle"></span>&nbsp;
                                 Add New Material
                             </button>
 
                             <!-- Modal-->
                             <div class="modal fade" id="exampleModalCenter" data-backdrop="static" tabindex="-1"
-                                role="dialog" aria-labelledby="staticBackdrop" aria-hidden="true">
+                                 role="dialog" aria-labelledby="staticBackdrop" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header">
@@ -142,7 +160,7 @@
                                                 <div class="col-lg-6">
                                                     <label>GR Detail: <span style="color:red">*</span></label>
                                                     <select class="form-control" id="gr_detail_select2"
-                                                        name="gr_detail_id">
+                                                            name="gr_detail_id">
                                                         <option></option>
                                                     </select>
                                                 </div>
@@ -161,7 +179,7 @@
                                                 <div class="col-lg-6">
                                                     <label>Qty Left:</label>
                                                     <input type="text" class="form-control" readonly
-                                                        id="qty_left_input">
+                                                           id="qty_left_input">
                                                 </div>
                                                 <div class="col-lg-6">
                                                     <label>GI Qty: <span style="color:red">*</span></label>
@@ -176,15 +194,15 @@
                                                 <div class="col-lg-6">
                                                     <label>Notes: <span style="color:red">*</span></label>
                                                     <textarea class="form-control"
-                                                    name="gi_note" id="gi_note"></textarea>
+                                                              name="gi_note" id="gi_note"></textarea>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-light-primary font-weight-bold"
-                                                data-dismiss="modal">Cancel</button>
+                                                    data-dismiss="modal">Cancel</button>
                                             <button type="button" id="save_material_btn"
-                                                class="btn btn-primary font-weight-bold">Save</button>
+                                                    class="btn btn-primary font-weight-bold">Save</button>
                                         </div>
                                     </div>
                                 </div>
@@ -219,7 +237,7 @@
                                     <td>{{ $row["TR_GR_DETAIL_LOCK_NOTE"] }}</td>
                                     <td>
                                         <a data-uniqid="{{ $row['TR_GR_DETAIL_LOCK_ID'] }}"
-                                            class="btn btn-sm btn-clean btn-icon delete_material_btn"> <i
+                                           class="btn btn-sm btn-clean btn-icon delete_material_btn"> <i
                                                 class="la la-trash"></i>
                                         </a>
                                     </td>

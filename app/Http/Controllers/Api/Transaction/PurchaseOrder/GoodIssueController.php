@@ -219,16 +219,16 @@ class GoodIssueController extends Controller
 
         $conditions = [];
         $detail_conditions = [];
-        if (isset($request->gr_po_number)) {
+        if (isset($request->gi_po_number)) {
             $conditions[0]["field_name"] = "TR_PO_HEADER_NUMBER";
             $conditions[0]["operator"] = "=";
-            $conditions[0]["value"] = $request->gr_po_number;
+            $conditions[0]["value"] = $request->gi_po_number;
             $conditions[1]["field_name"] = "TR_PO_HEADER_IS_DELETED";
             $conditions[1]["operator"] = "=";
             $conditions[1]["value"] = false;
             $detail_conditions[0]["field_name"] = "TR_PO_DETAIL_PO_HEADER_NUMBER";
             $detail_conditions[0]["operator"] = "=";
-            $detail_conditions[0]["value"] = $request->gr_po_number;
+            $detail_conditions[0]["value"] = $request->gi_po_number;
         }
 
         $data = std_get([
@@ -525,7 +525,7 @@ class GoodIssueController extends Controller
             "data" => "GI Successfully Created"
         ],200);
     }
-
+    
     public function history_header(Request $request)
     {
         $plant_code = $request->user_data->plant;
