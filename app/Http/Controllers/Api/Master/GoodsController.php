@@ -242,6 +242,7 @@ class GoodsController extends Controller {
                 "TR_PO_HEADER_STATUS",
                 "TR_PO_HEADER_VENDOR",
                 "TR_PO_HEADER_SUP_PLANT",
+                "TR_PO_HEADER_SAP_CREATED_DATE",
                 "TR_PO_HEADER_FLAG",
                 "TR_PO_HEADER_CREATED_BY",
                 "TR_PO_HEADER_CREATED_TIMESTAMP",
@@ -330,7 +331,7 @@ class GoodsController extends Controller {
                 ]
             ]);
         }
-
+//dd($conditions);
         $po_gi_data_zret = std_get([
             "select" => [
                 "TR_PO_HEADER_ID",
@@ -339,6 +340,7 @@ class GoodsController extends Controller {
                 "TR_PO_HEADER_STATUS",
                 "TR_PO_HEADER_VENDOR",
                 "TR_PO_HEADER_SUP_PLANT",
+                "TR_PO_HEADER_SAP_CREATED_DATE",
                 "TR_PO_HEADER_FLAG",
                 "TR_PO_HEADER_CREATED_BY",
                 "TR_PO_HEADER_CREATED_TIMESTAMP",
@@ -665,5 +667,217 @@ class GoodsController extends Controller {
             ],
             "first_row" => false
         ]);
+    }
+
+    public function get_tp_list_materials(Request $request) {
+        $plant_code = $request->user_data->plant;
+//        $materials = std_get([
+//            "select" => ["MA_MATL_CODE as id","MA_MATL_DESC as text"],
+//            "table_name" => "MA_MATL",
+//            "where" => [
+//                [
+//                    "field_name" => "MA_MATL_PLANT",
+//                    "operator" => "=",
+//                    "value" => $plant_code
+//                ]
+//            ],
+//            "order_by" => [
+//                [
+//                    "field" => "MA_MATL_DESC",
+//                    "type" => "ASC",
+//                ]
+//            ],
+//            "distinct" => true
+//        ]);
+
+
+        $materials = std_get([
+            "select" => ["TR_GR_DETAIL_MATERIAL_CODE as id", "TR_GR_DETAIL_MATERIAL_NAME as text"],
+            "table_name" => "TR_GR_DETAIL",
+            "join" => [
+                [
+                    "join_type" => "inner",
+                    "table_name" => "TR_GR_HEADER",
+                    "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
+                    "operator" => "=",
+                    "on2" => "TR_GR_HEADER.TR_GR_HEADER_ID",
+                ],
+                [
+                    "join_type" => "left",
+                    "table_name" => "TR_GR_DETAIL_LOCK",
+                    "on1" => "TR_GR_DETAIL_LOCK.TR_GR_DETAIL_LOCK_GR_DETAIL_ID",
+                    "operator" => "=",
+                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
+                ]
+            ],
+            "where" => [
+                [
+                    "field_name" => "TR_GR_DETAIL_UNLOADING_PLANT",
+                    "operator" => "=",
+                    "value" => $plant_code
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_LEFT_QTY",
+                    "operator" => ">",
+                    "value" => 0
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_SAP_DOC",
+                    "operator" => "!=",
+                    "value" => null
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_LOCK_ID",
+                    "operator" => "=",
+                    "value" => null
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_IS_ADJUSTMENT",
+                    "operator" => "=",
+                    "value" => false
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_IS_CANCELLED",
+                    "operator" => "=",
+                    "value" => false
+                ]
+            ],
+            "order_by" => [
+                [
+                    "field" => "TR_GR_DETAIL_MATERIAL_NAME",
+                    "type" => "ASC",
+                ]
+            ],
+            "distinct" => true,
+            "first_row" => false
+        ]);
+
+        if ($materials != null) {
+            foreach ($materials as $row) {
+                $materials_adj[] = [
+                    "id" => $row["id"],
+                    "text" => $row["id"] . " - " . $row["text"]
+                ];
+            }
+            return response()->json([
+                        "status" => "OK",
+                        "data" => $materials_adj,
+                        "sloc_data" => get_sloc(session("plant"))
+                            ], 200);
+        } else {
+            return response()->json([
+                        "status" => "OK",
+                        "data" => [],
+                        "sloc_data" => get_sloc(session("plant"))
+                            ], 200);
+        }
+    }
+
+    public function get_tp_list_gr_details_by_mat_code(Request $request) {
+
+        $plant_code = $request->user_data->plant;
+
+        $clause = [
+            "select" => ["*"],
+            "table_name" => "TR_GR_HEADER",
+            "join" => [
+                [
+                    "join_type" => "inner",
+                    "table_name" => "TR_GR_DETAIL",
+                    "on1" => "TR_GR_HEADER.TR_GR_HEADER_ID",
+                    "operator" => "=",
+                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
+                ],
+                [
+                    "join_type" => "left",
+                    "table_name" => "TR_GR_DETAIL_LOCK",
+                    "on1" => "TR_GR_DETAIL_LOCK.TR_GR_DETAIL_LOCK_GR_DETAIL_ID",
+                    "operator" => "=",
+                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
+                ]
+            ],
+            "where" => [
+                [
+                    "field_name" => "TR_GR_DETAIL_UNLOADING_PLANT",
+                    "operator" => "=",
+                    "value" => $plant_code
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_LEFT_QTY",
+                    "operator" => ">",
+                    "value" => 0
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_SAP_DOC",
+                    "operator" => "!=",
+                    "value" => null
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_LOCK_ID",
+                    "operator" => "=",
+                    "value" => null
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_IS_ADJUSTMENT",
+                    "operator" => "=",
+                    "value" => false
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_IS_CANCELLED",
+                    "operator" => "=",
+                    "value" => false
+                ]
+            ],
+            "order_by" => [
+                [
+                    "field" => "TR_GR_DETAIL_MATERIAL_NAME",
+                    "type" => "ASC",
+                ]
+            ],
+            "distinct" => true,
+            "first_row" => false
+        ];
+        if (isset($request->material_code) && $request->material_code != "") {
+            $clause['where'][] = [
+                        "field_name" => "TR_GR_DETAIL_MATERIAL_CODE",
+                        "operator" => "=",
+                        "value" => $request->material_code
+            ];
+        }
+        if (isset($request->movement_type) && $request->movement_type != "") {
+            /**
+             * 2023 Nov
+             * 
+             * sebelum Nov :
+             * 1. ada TP movement code 311 dan 551
+             * 
+             * setelah CR GR/GI:
+             * 1. hanya ada mvt code 311/TP
+             */
+//            $conditions = array_merge($conditions, [
+//                [
+//                    "field_name" => "TR_GR_DETAIL_MATERIAL_CODE",
+//                    "operator" => "=",
+//                    "value" => $request->movement_type
+//                ]
+//            ]);
+        }
+        $gr_data = std_get($clause);
+
+        $select2 = [];
+        if ($gr_data != null) {
+            foreach ($gr_data as $row) {
+                $select2 = array_merge($select2, [
+                    [
+                        "id" => $row["TR_GR_DETAIL_ID"],
+                        "text" => $row["TR_GR_DETAIL_ID"] . " | " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $row["TR_GR_DETAIL_SAP_BATCH"] . " | " . $row["TR_GR_DETAIL_EXP_DATE"]
+                    ]
+                ]);
+            }
+        }
+        return response()->json([
+                    "status" => "OK",
+                    "data" => $select2
+                        ], 200);
     }
 }

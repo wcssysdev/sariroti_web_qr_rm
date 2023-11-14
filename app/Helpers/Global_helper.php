@@ -1,10 +1,10 @@
 <?php
+
 use Illuminate\Support\Facades\Log;
 use \Firebase\JWT\JWT;
 use Illuminate\Support\Facades\DB;
 
-function get_master_data($table_name=null, $selects=null, $limit=null, $offset=null, $is_find=false, $conditions=[], $orders=null, $where_in=null)
-{
+function get_master_data($table_name = null, $selects = null, $limit = null, $offset = null, $is_find = false, $conditions = [], $orders = null, $where_in = null) {
     if (isset($selects)) {
         $select_fields = $selects;
     } else {
@@ -27,7 +27,7 @@ function get_master_data($table_name=null, $selects=null, $limit=null, $offset=n
 
     if (isset($conditions) && is_array($conditions)) {
         $conditions = [];
-        for ($i=0; $i < count($conditions); $i++) {
+        for ($i = 0; $i < count($conditions); $i++) {
             if (isset($conditions[$i]["field_name"]) && isset($conditions[$i]["operator"]) && isset($conditions[$i]["value"])) {
                 $conditions[$i]["field_name"] = $conditions[$i]["field_name"];
                 $conditions[$i]["operator"] = $conditions[$i]["operator"];
@@ -35,10 +35,10 @@ function get_master_data($table_name=null, $selects=null, $limit=null, $offset=n
             }
         }
     }
-    
+
     if (isset($orders) && is_array($orders)) {
         $orders = [];
-        for ($i=0; $i < count($orders); $i++) {
+        for ($i = 0; $i < count($orders); $i++) {
             if (isset($orders[$i]["field"])) {
                 $orders[$i]["field"] = $orders[$i]["field"];
                 if (isset($orders[$i]["type"])) {
@@ -49,7 +49,7 @@ function get_master_data($table_name=null, $selects=null, $limit=null, $offset=n
             }
         }
     }
-    
+
     if (isset($where_in) && is_array($where_in)) {
         if (isset($where_in["field_name"]) && isset($where_in["ids"]) && is_array($where_in["ids"])) {
             $where_in["field_name"] = $where_in["field_name"];
@@ -71,16 +71,15 @@ function get_master_data($table_name=null, $selects=null, $limit=null, $offset=n
     return $data;
 }
 
-function export_request_master_data_csv($type_csv_string, $type_file_name)
-{
+function export_request_master_data_csv($type_csv_string, $type_file_name) {
     $export_csv_po_header[] = $type_csv_string;
     $export_csv_po_header[] = "U";
     $path = storage_path('app/public/INCOMING2/MASTER_DATA_INCOMING/');
     if (!Storage::exists($path)) {
         Storage::makeDirectory('public/INCOMING2/MASTER_DATA_INCOMING/');
     }
-    $fileName = "MASTERDATA_IN_".$type_file_name."_".date("dmY").date("His").".csv";
-    $file = fopen($path.$fileName, 'w');
+    $fileName = "MASTERDATA_IN_" . $type_file_name . "_" . date("dmY") . date("His") . ".csv";
+    $file = fopen($path . $fileName, 'w');
 
     $columns = array($type_file_name, 'U');
 
@@ -93,16 +92,15 @@ function export_request_master_data_csv($type_csv_string, $type_file_name)
     return $response;
 }
 
-function export_request_po_data_csv($type_csv_string, $type_file_name)
-{
+function export_request_po_data_csv($type_csv_string, $type_file_name) {
     $export_csv_po_header[] = $type_csv_string;
     $export_csv_po_header[] = "U";
     $path = storage_path('app/public/INCOMING2/UPDATE_DATA/');
     if (!Storage::exists($path)) {
         Storage::makeDirectory('public/INCOMING2/UPDATE_DATA/');
     }
-    $fileName = "UPDATE_IN_".date("dmY").date("His").".csv";
-    $file = fopen($path.$fileName, 'w');
+    $fileName = "UPDATE_IN_" . date("dmY") . date("His") . ".csv";
+    $file = fopen($path . $fileName, 'w');
 
     $columns = array($type_file_name, 'U');
 
@@ -115,8 +113,7 @@ function export_request_po_data_csv($type_csv_string, $type_file_name)
     return $response;
 }
 
-function get_outgoing_folder_name($master_type)
-{
+function get_outgoing_folder_name($master_type) {
     if ($master_type == "CC") {
         return "COST_CENTER";
     } elseif ($master_type == "GL") {
@@ -136,8 +133,7 @@ function get_outgoing_folder_name($master_type)
     }
 }
 
-function insert_data($insert_values, $table_name)
-{
+function insert_data($insert_values, $table_name) {
     if ($insert_values != null) {
         std_truncate([
             "table_name" => $table_name
@@ -146,15 +142,13 @@ function insert_data($insert_values, $table_name)
         if ($table_name == "MA_MATL" || $table_name == "MA_VENDOR") {
             $insert_values = collect($insert_values);
             $chunks = $insert_values->chunk(1000);
-            foreach ($chunks as $chunk)
-            {
+            foreach ($chunks as $chunk) {
                 std_insert([
                     "table_name" => $table_name,
                     "data" => $chunk->toArray()
                 ]);
             }
-        }
-        else{
+        } else {
             std_insert([
                 "table_name" => $table_name,
                 "data" => $insert_values
@@ -163,18 +157,15 @@ function insert_data($insert_values, $table_name)
     }
 }
 
-function check_string($data)
-{
+function check_string($data) {
     $data = preg_replace('/[^a-zA-Z0-9_ -]/s', '', $data);
     return $data;
 }
 
-
-function sync_master_data($master_type = null)
-{
-    $base_url = storage_path('app/public/OUTGOING2/MASTERDATA/'.get_outgoing_folder_name($master_type)."/");
+function sync_master_data($master_type = null) {
+    $base_url = storage_path('app/public/OUTGOING2/MASTERDATA/' . get_outgoing_folder_name($master_type) . "/");
     $base_url_success = storage_path('app/public/OUTGOING2/MASTERDATA_BACKUP/');
-    $files = glob($base_url."MASTERBC_".$master_type."_*.csv");
+    $files = glob($base_url . "MASTERBC_" . $master_type . "_*.csv");
     if ($files == null) {
         $response = [
             "code" => 404,
@@ -182,8 +173,8 @@ function sync_master_data($master_type = null)
         ];
         return $response;
     }
-    
-    for ($i=0; $i < count($files); $i++) {
+
+    for ($i = 0; $i < count($files); $i++) {
         $file = fopen($files[$i], "r");
 
         $insert_data = null;
@@ -193,7 +184,7 @@ function sync_master_data($master_type = null)
         $insert_result = true;
         $update_result = true;
 
-        while (! feof($file)) {
+        while (!feof($file)) {
             $file_rows = fgetcsv($file, null, ";");
             if ($file_rows != false) {
                 if ($file_rows[0] != null && $file_rows[0] != "" && $file_rows[0] != "EOF") {
@@ -223,8 +214,8 @@ function sync_master_data($master_type = null)
                             $batch_flag = true;
                         }
 
-                        $file_rows[7] = str_replace("-","",$file_rows[7]);
-                        $file_rows[7] = str_replace(",","",$file_rows[7]);
+                        $file_rows[7] = str_replace("-", "", $file_rows[7]);
+                        $file_rows[7] = str_replace(",", "", $file_rows[7]);
 
                         $insert_values[] = [
                             "MA_MATL_CODE" => $file_rows[0],
@@ -255,8 +246,8 @@ function sync_master_data($master_type = null)
                             "MA_COSTCNTR_CREATED_TIMESTAMP" => date("Y-m-d H:i:s"),
                         ];
                     } elseif ($master_type == "MAT_UoM") {
-                        $file_rows[2] = str_replace(",","",$file_rows[2]);
-                        $file_rows[3] = str_replace(",","",$file_rows[3]);
+                        $file_rows[2] = str_replace(",", "", $file_rows[2]);
+                        $file_rows[3] = str_replace(",", "", $file_rows[3]);
                         $insert_values[] = [
                             "MA_UOM_MATCODE" => $file_rows[0],
                             "MA_UOM_UOM" => $file_rows[1],
@@ -286,8 +277,6 @@ function sync_master_data($master_type = null)
                     }
                 }
             }
-
-            
         }
         if ($master_type == "PLANT") {
             insert_data($insert_values, "MA_PLANT");
@@ -308,7 +297,7 @@ function sync_master_data($master_type = null)
         }
 
         if ($insert_result == true) {
-            if (copy($files[$i], $base_url_success.basename($files[$i]))) {
+            if (copy($files[$i], $base_url_success . basename($files[$i]))) {
                 unlink($files[$i]);
                 // update_cron_log($log_id, 1);
             } else {
@@ -318,36 +307,35 @@ function sync_master_data($master_type = null)
         fclose($file);
         $response = [
             "code" => 200,
-            "message" => "successfuly save master data".$master_type
+            "message" => "successfuly save master data" . $master_type
         ];
         return $response;
     }
 }
 
-function decode_token($token)
-{
+function decode_token($token) {
     $decoded = JWT::decode($token, "example_key", array('HS256'));
     return (array) $decoded;
 }
-function update_image_source($data, $is_find, $array_key, $location)
-{
+
+function update_image_source($data, $is_find, $array_key, $location) {
     if ($is_find == true) {
         if (isset($data[$array_key])) {
             if ($data[$array_key] == "" || $data[$array_key] == null) {
                 $data[$array_key] = null;
             } else {
-                $data[$array_key] = env('AWS_S3_DEFAULT_URL').$location.$data[$array_key];
+                $data[$array_key] = env('AWS_S3_DEFAULT_URL') . $location . $data[$array_key];
             }
         } else {
             return $data;
         }
     } else {
-        for ($i=0; $i < count($data); $i++) {
+        for ($i = 0; $i < count($data); $i++) {
             if (isset($data[$i][$array_key])) {
                 if ($data[$i][$array_key] == "" || $data[$i][$array_key] == null) {
                     $data[$i][$array_key] = null;
                 } else {
-                    $data[$i][$array_key] = env('AWS_S3_DEFAULT_URL').$location.$data[$i][$array_key];
+                    $data[$i][$array_key] = env('AWS_S3_DEFAULT_URL') . $location . $data[$i][$array_key];
                 }
             } else {
                 $data[$i][$array_key] = null;
@@ -357,20 +345,16 @@ function update_image_source($data, $is_find, $array_key, $location)
     return $data;
 }
 
-function get_image_url($data)
-{
-    $url = 'https://'. env('AWS_BUCKET') .'.s3-'. env('AWS_DEFAULT_REGION') .'.amazonaws.com/images/';
+function get_image_url($data) {
+    $url = 'https://' . env('AWS_BUCKET') . '.s3-' . env('AWS_DEFAULT_REGION') . '.amazonaws.com/images/';
     return $url . $data;
 }
 
-function base_assets_url($service_type, $image_name)
-{
-    return hostname_dictionary($service_type)."public/".$image_name;
+function base_assets_url($service_type, $image_name) {
+    return hostname_dictionary($service_type) . "public/" . $image_name;
 }
 
-
-function ldap_login($email = null, $password = null)
-{
+function ldap_login($email = null, $password = null) {
     if ($email != null && $password != null) {
         $server = gethostbyname("sso.sariroti.com");
         $ds = ldap_connect($server, 389);
@@ -405,34 +389,30 @@ function ldap_login($email = null, $password = null)
     }
 }
 
-function convert_to_y_m_d($date)
-{
-    $day = substr($date,0,2);
-    $month = substr($date,3,2);
-    $year = substr($date,6,4);
-    return $year."-".$month."-".$day;
+function convert_to_y_m_d($date) {
+    $day = substr($date, 0, 2);
+    $month = substr($date, 3, 2);
+    $year = substr($date, 6, 4);
+    return $year . "-" . $month . "-" . $day;
 }
 
-function convert_to_dmy($date)
-{
-    $day = substr($date,8,2);
-    $month = substr($date,5,2);
-    $year = substr($date,0,4);
-    return $day.$month.$year;
+function convert_to_dmy($date) {
+    $day = substr($date, 8, 2);
+    $month = substr($date, 5, 2);
+    $year = substr($date, 0, 4);
+    return $day . $month . $year;
 }
 
-function convert_to_web_dmy($date)
-{
-    $day = substr($date,8,2);
-    $month = substr($date,5,2);
-    $year = substr($date,0,4);
-    return $day."-".$month."-".$year;
+function convert_to_web_dmy($date) {
+    $day = substr($date, 8, 2);
+    $month = substr($date, 5, 2);
+    $year = substr($date, 0, 4);
+    return $day . "-" . $month . "-" . $year;
 }
 
-function get_sloc($plant_code)
-{
+function get_sloc($plant_code) {
     $data = std_get([
-        "select" => ["MA_SLOC_CODE","MA_SLOC_DESC"],
+        "select" => ["MA_SLOC_CODE", "MA_SLOC_DESC"],
         "table_name" => "MA_SLOC",
         "where" => [
             [
@@ -454,15 +434,14 @@ function get_sloc($plant_code)
         $sloc_arr = array_merge($sloc_arr, [
             [
                 "id" => $row["MA_SLOC_CODE"],
-                "text" => $row["MA_SLOC_CODE"]." - ".$row["MA_SLOC_DESC"]
+                "text" => $row["MA_SLOC_CODE"] . " - " . $row["MA_SLOC_DESC"]
             ]
         ]);
     }
     return $sloc_arr;
 }
 
-function generate_gr_csv($gr_header_id, $plant_code)
-{
+function generate_gr_csv($gr_header_id, $plant_code) {
     $header_data = std_get([
         "select" => ["*"],
         "table_name" => "TR_GR_HEADER",
@@ -477,7 +456,7 @@ function generate_gr_csv($gr_header_id, $plant_code)
     ]);
 
     $detail_data = std_get([
-        "select" => ["TR_GR_DETAIL.*","TR_PO_DETAIL_MATERIAL_LINE_NUM"],
+        "select" => ["TR_GR_DETAIL.*", "TR_PO_DETAIL_MATERIAL_LINE_NUM"],
         "table_name" => "TR_GR_DETAIL",
         "join" => [
             [
@@ -503,19 +482,19 @@ function generate_gr_csv($gr_header_id, $plant_code)
         ],
     ]);
 
-    $fp = fopen(storage_path('app/public/INCOMING2/MIGO/'."MIGO_IN_".$plant_code."_GR_".str_pad($gr_header_id, 7, "0", STR_PAD_LEFT)."_".date("YmdHis").".csv"), 'w');
+    $fp = fopen(storage_path('app/public/INCOMING2/MIGO/' . "MIGO_IN_" . $plant_code . "_GR_" . str_pad($gr_header_id, 7, "0", STR_PAD_LEFT) . "_" . date("YmdHis") . ".csv"), 'w');
     fputcsv($fp, [
         "GR",
         $header_data["TR_GR_HEADER_PO_NUMBER"],
         "",
         "",
         $header_data["TR_GR_HEADER_MVT_CODE"],
-        convert_to_dmy(str_replace("-",".",$header_data["TR_GR_HEADER_PSTG_DATE"])),
-        convert_to_dmy(str_replace("-",".",$header_data["TR_GR_HEADER_DOC_DATE"])),
+        convert_to_dmy(str_replace("-", ".", $header_data["TR_GR_HEADER_PSTG_DATE"])),
+        convert_to_dmy(str_replace("-", ".", $header_data["TR_GR_HEADER_DOC_DATE"])),
         $header_data["TR_GR_HEADER_TXT"],
         $header_data["TR_GR_HEADER_BOL"],
         $gr_header_id,
-    ], ";");
+            ], ";");
 
     $counter = 1;
     foreach ($detail_data as $row) {
@@ -534,15 +513,14 @@ function generate_gr_csv($gr_header_id, $plant_code)
             $row["TR_GR_DETAIL_QR_CODE_NUMBER"],
             $row["TR_GR_DETAIL_GL_ACCOUNT"],
             $row["TR_GR_DETAIL_COST_CENTER"],
-        ], ";");
+                ], ";");
         $counter++;
     }
 
     fclose($fp);
 }
 
-function generate_gi_csv($gi_header_id, $plant_code)
-{
+function generate_gi_csv($gi_header_id, $plant_code) {
     $header_data = std_get([
         "select" => ["*"],
         "table_name" => "TR_GI_SAPHEADER",
@@ -557,7 +535,7 @@ function generate_gi_csv($gi_header_id, $plant_code)
     ]);
 
     $detail_data = std_get([
-        "select" => ["TR_GI_SAPDETAIL.*","TR_PO_DETAIL_MATERIAL_LINE_NUM"],
+        "select" => ["TR_GI_SAPDETAIL.*", "TR_PO_DETAIL_MATERIAL_LINE_NUM"],
         "table_name" => "TR_GI_SAPDETAIL",
         "join" => [
             [
@@ -591,24 +569,22 @@ function generate_gi_csv($gi_header_id, $plant_code)
     ]);
 
     if ($header_data["TR_GI_SAPHEADER_MVT_CODE"] == "101") {
-        $fp = fopen(storage_path('app/public/INCOMING2/MIGO/'."MIGO_IN_".$plant_code."_GR_".str_pad($gi_header_id, 7, "0", STR_PAD_LEFT)."_".date("YmdHis").".csv"), 'w');
+        $fp = fopen(storage_path('app/public/INCOMING2/MIGO/' . "MIGO_IN_" . $plant_code . "_GR_" . str_pad($gi_header_id, 7, "0", STR_PAD_LEFT) . "_" . date("YmdHis") . ".csv"), 'w');
 
-    fputcsv($fp, [
-        "GR",
-        $header_data["TR_GI_SAPHEADER_PO_NUMBER"],
-        "",
-        "",
-        $header_data["TR_GI_SAPHEADER_MVT_CODE"],
-        convert_to_dmy(str_replace("-",".",$header_data["TR_GI_SAPHEADER_PSTG_DATE"])),
-        convert_to_dmy(str_replace("-",".",$header_data["TR_GI_SAPHEADER_DOC_DATE"])),
-        $header_data["TR_GI_SAPHEADER_TXT"],
-        $header_data["TR_GI_SAPHEADER_BOL"],
-        $gi_header_id,
-    ], ";");
-
-    }
-    else{
-        $fp = fopen(storage_path('app/public/INCOMING2/MIGO/'."MIGO_IN_".$plant_code."_GI_".str_pad($gi_header_id, 7, "0", STR_PAD_LEFT)."_".date("YmdHis").".csv"), 'w');
+        fputcsv($fp, [
+            "GR",
+            $header_data["TR_GI_SAPHEADER_PO_NUMBER"],
+            "",
+            "",
+            $header_data["TR_GI_SAPHEADER_MVT_CODE"],
+            convert_to_dmy(str_replace("-", ".", $header_data["TR_GI_SAPHEADER_PSTG_DATE"])),
+            convert_to_dmy(str_replace("-", ".", $header_data["TR_GI_SAPHEADER_DOC_DATE"])),
+            $header_data["TR_GI_SAPHEADER_TXT"],
+            $header_data["TR_GI_SAPHEADER_BOL"],
+            $gi_header_id,
+                ], ";");
+    } else {
+        $fp = fopen(storage_path('app/public/INCOMING2/MIGO/' . "MIGO_IN_" . $plant_code . "_GI_" . str_pad($gi_header_id, 7, "0", STR_PAD_LEFT) . "_" . date("YmdHis") . ".csv"), 'w');
 
         fputcsv($fp, [
             "GI",
@@ -616,15 +592,14 @@ function generate_gi_csv($gi_header_id, $plant_code)
             "",
             "",
             $header_data["TR_GI_SAPHEADER_MVT_CODE"],
-            convert_to_dmy(str_replace("-",".",$header_data["TR_GI_SAPHEADER_PSTG_DATE"])),
-            convert_to_dmy(str_replace("-",".",$header_data["TR_GI_SAPHEADER_DOC_DATE"])),
+            convert_to_dmy(str_replace("-", ".", $header_data["TR_GI_SAPHEADER_PSTG_DATE"])),
+            convert_to_dmy(str_replace("-", ".", $header_data["TR_GI_SAPHEADER_DOC_DATE"])),
             $header_data["TR_GI_SAPHEADER_TXT"],
             $header_data["TR_GI_SAPHEADER_BOL"],
             $gi_header_id,
-        ], ";");
-    
+                ], ";");
     }
-    
+
     $counter = 1;
     foreach ($detail_data as $row) {
         fputcsv($fp, [
@@ -642,15 +617,14 @@ function generate_gi_csv($gi_header_id, $plant_code)
             $row["TR_GI_SAPDETAIL_QR_CODE_NUMBER"],
             "",
             "",
-        ], ";");
+                ], ";");
         $counter++;
     }
 
     fclose($fp);
 }
 
-function generate_tp_csv($tp_header_id, $plant_code)
-{
+function generate_tp_csv($tp_header_id, $plant_code) {
     $header_data = std_get([
         "select" => ["*"],
         "table_name" => "TR_TP_HEADER",
@@ -682,26 +656,26 @@ function generate_tp_csv($tp_header_id, $plant_code)
                 ]
             ],
         ]);
-    
-        $fp = fopen(storage_path('app/public/INCOMING2/MIGO/'."MIGO_IN_".$plant_code."_TP_".str_pad($tp_header_id, 7, "0", STR_PAD_LEFT)."_".date("YmdHis").".csv"), 'w');
-    
+
+        $fp = fopen(storage_path('app/public/INCOMING2/MIGO/' . "MIGO_IN_" . $plant_code . "_TP_" . str_pad($tp_header_id, 7, "0", STR_PAD_LEFT) . "_" . date("YmdHis") . ".csv"), 'w');
+
         fputcsv($fp, [
             "TP",
             "",
             "",
             "",
             $header_data["TR_TP_HEADER_MVT_CODE"],
-            convert_to_dmy(str_replace("-",".",$header_data["TR_TP_HEADER_PSTG_DATE"])),
-            convert_to_dmy(str_replace("-",".",$header_data["TR_TP_HEADER_DOC_DATE"])),
+            convert_to_dmy(str_replace("-", ".", $header_data["TR_TP_HEADER_PSTG_DATE"])),
+            convert_to_dmy(str_replace("-", ".", $header_data["TR_TP_HEADER_DOC_DATE"])),
             $header_data["TR_TP_HEADER_TXT"],
             $header_data["TR_TP_HEADER_BOL"],
             $tp_header_id,
-        ], ";");
+                ], ";");
 
         $counter = 1;
         foreach ($detail_data as $row) {
             fputcsv($fp, [
-                $counter."0",
+                $counter . "0",
                 $row["TR_TP_DETAIL_MATERIAL_CODE"],
                 $row["TR_TP_DETAIL_SAP_BATCH"],
                 $row["TR_TP_DETAIL_MOBILE_QTY"],
@@ -715,14 +689,13 @@ function generate_tp_csv($tp_header_id, $plant_code)
                 $row["TR_TP_DETAIL_QR_CODE_NUMBER"],
                 $header_data["TR_TP_GL_ACCOUNT_CODE"],
                 $header_data["TR_TP_COST_CENTER_CODE"],
-            ], ";");
+                    ], ";");
             $counter++;
         }
         fclose($fp);
-    }
-    else{
+    } else {
         $detail_data = std_get([
-            "select" => ["TR_TP_DETAIL.*","TR_GR_DETAIL_SLOC","TR_GR_DETAIL_UNLOADING_PLANT"],
+            "select" => ["TR_TP_DETAIL.*", "TR_GR_DETAIL_SLOC", "TR_GR_DETAIL_UNLOADING_PLANT"],
             "table_name" => "TR_TP_DETAIL",
             "join" => [
                 [
@@ -732,13 +705,13 @@ function generate_tp_csv($tp_header_id, $plant_code)
                     "operator" => "=",
                     "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                 ],
-                // [
-                //     "join_type" => "inner",
-                //     "table_name" => "TR_PO_DETAIL",
-                //     "on1" => "TR_PO_DETAIL.TR_PO_DETAIL_ID",
-                //     "operator" => "=",
-                //     "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_PO_DETAIL_ID",
-                // ]
+            // [
+            //     "join_type" => "inner",
+            //     "table_name" => "TR_PO_DETAIL",
+            //     "on1" => "TR_PO_DETAIL.TR_PO_DETAIL_ID",
+            //     "operator" => "=",
+            //     "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_PO_DETAIL_ID",
+            // ]
             ],
             "where" => [
                 [
@@ -754,23 +727,23 @@ function generate_tp_csv($tp_header_id, $plant_code)
                 ]
             ],
         ]);
-    
+
         if ($header_data["TR_TP_HEADER_MVT_CODE"] == "551") {
-            $fp = fopen(storage_path('app/public/INCOMING2/MIGO/'."MIGO_IN_".$plant_code."_BIWA_".str_pad($tp_header_id, 7, "0", STR_PAD_LEFT)."_".date("YmdHis").".csv"), 'w');
-    
+            $fp = fopen(storage_path('app/public/INCOMING2/MIGO/' . "MIGO_IN_" . $plant_code . "_BIWA_" . str_pad($tp_header_id, 7, "0", STR_PAD_LEFT) . "_" . date("YmdHis") . ".csv"), 'w');
+
             fputcsv($fp, [
                 "BIWA",
                 "",
                 "",
                 "",
                 $header_data["TR_TP_HEADER_MVT_CODE"],
-                convert_to_dmy(str_replace("-",".",$header_data["TR_TP_HEADER_PSTG_DATE"])),
-                convert_to_dmy(str_replace("-",".",$header_data["TR_TP_HEADER_DOC_DATE"])),
+                convert_to_dmy(str_replace("-", ".", $header_data["TR_TP_HEADER_PSTG_DATE"])),
+                convert_to_dmy(str_replace("-", ".", $header_data["TR_TP_HEADER_DOC_DATE"])),
                 $header_data["TR_TP_HEADER_TXT"],
                 $header_data["TR_TP_HEADER_BOL"],
                 $tp_header_id,
-            ], ";");
-    
+                    ], ";");
+
             $counter = 1;
             foreach ($detail_data as $row) {
                 fputcsv($fp, [
@@ -788,13 +761,12 @@ function generate_tp_csv($tp_header_id, $plant_code)
                     $row["TR_TP_DETAIL_QR_CODE_NUMBER"],
                     $header_data["TR_TP_GL_ACCOUNT_CODE"],
                     $header_data["TR_TP_COST_CENTER_CODE"],
-                ], ";");
+                        ], ";");
                 $counter++;
             }
             fclose($fp);
-        }
-        else{
-            $fp = fopen(storage_path('app/public/INCOMING2/MIGO/'."MIGO_IN_".$plant_code."_TP_".str_pad($tp_header_id, 7, "0", STR_PAD_LEFT)."_".date("YmdHis").".csv"), 'w');
+        } else {
+            $fp = fopen(storage_path('app/public/INCOMING2/MIGO/' . "MIGO_IN_" . $plant_code . "_TP_" . str_pad($tp_header_id, 7, "0", STR_PAD_LEFT) . "_" . date("YmdHis") . ".csv"), 'w');
 
             fputcsv($fp, [
                 "TP",
@@ -802,13 +774,13 @@ function generate_tp_csv($tp_header_id, $plant_code)
                 "",
                 "",
                 $header_data["TR_TP_HEADER_MVT_CODE"],
-                convert_to_dmy(str_replace("-",".",$header_data["TR_TP_HEADER_PSTG_DATE"])),
-                convert_to_dmy(str_replace("-",".",$header_data["TR_TP_HEADER_DOC_DATE"])),
+                convert_to_dmy(str_replace("-", ".", $header_data["TR_TP_HEADER_PSTG_DATE"])),
+                convert_to_dmy(str_replace("-", ".", $header_data["TR_TP_HEADER_DOC_DATE"])),
                 $header_data["TR_TP_HEADER_TXT"],
                 $header_data["TR_TP_HEADER_BOL"],
                 $tp_header_id,
-            ], ";");
-    
+                    ], ";");
+
             $counter = 1;
             foreach ($detail_data as $row) {
                 fputcsv($fp, [
@@ -826,17 +798,15 @@ function generate_tp_csv($tp_header_id, $plant_code)
                     $row["TR_TP_DETAIL_QR_CODE_NUMBER"],
                     $header_data["TR_TP_GL_ACCOUNT_CODE"],
                     $header_data["TR_TP_COST_CENTER_CODE"],
-                ], ";");
+                        ], ";");
                 $counter++;
             }
             fclose($fp);
         }
     }
-    
 }
 
-function generate_cancellation_csv($cancellation_id, $plant_code)
-{
+function generate_cancellation_csv($cancellation_id, $plant_code) {
     $header_data = std_get([
         "select" => ["*"],
         "table_name" => "TR_CANCELATION_MVT",
@@ -850,10 +820,11 @@ function generate_cancellation_csv($cancellation_id, $plant_code)
         "first_row" => true
     ]);
 
+    $detail_data = [];
     //GR
     if ($header_data["TR_CANCELLATION_MVT_SAP_CODE"] == "102") {
         $detail_data = std_get([
-            "select" => ["TR_CANCELATION_MVT_DETAIL.*","TR_PO_DETAIL.TR_PO_DETAIL_MATERIAL_LINE_NUM"],
+            "select" => ["TR_CANCELATION_MVT_DETAIL.*", "TR_PO_DETAIL.TR_PO_DETAIL_MATERIAL_LINE_NUM"],
             "table_name" => "TR_CANCELATION_MVT_DETAIL",
             "join" => [
                 [
@@ -930,9 +901,45 @@ function generate_cancellation_csv($cancellation_id, $plant_code)
     }
     //TP
     else if ($header_data["TR_CANCELLATION_MVT_SAP_CODE"] == "312" || $header_data["TR_CANCELLATION_MVT_SAP_CODE"] == "552") {
-/*       Hapus karena join ke PO
+        /*       Hapus karena join ke PO
+          $detail_data = std_get([
+          "select" => ["TR_CANCELATION_MVT_DETAIL.*","TR_PO_DETAIL.TR_PO_DETAIL_MATERIAL_LINE_NUM"],
+          "table_name" => "TR_CANCELATION_MVT_DETAIL",
+          "join" => [
+          [
+          "join_type" => "inner",
+          "table_name" => "TR_TP_DETAIL",
+          "on1" => "TR_CANCELATION_MVT_DETAIL.TR_CANCELATION_MVT_DETAIL_TRANSACTION_DETAIL_IDS",
+          "operator" => "=",
+          "on2" => "TR_TP_DETAIL.TR_TP_DETAIL_ID",
+          ],
+          [
+          "join_type" => "inner",
+          "table_name" => "TR_GR_DETAIL",
+          "on1" => "TR_TP_DETAIL.TR_TP_DETAIL_GR_DETAIL_ID",
+          "operator" => "=",
+          "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
+          ],
+          [
+          "join_type" => "inner",
+          "table_name" => "TR_PO_DETAIL",
+          "on1" => "TR_PO_DETAIL.TR_PO_DETAIL_ID",
+          "operator" => "=",
+          "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_PO_DETAIL_ID",
+          ]
+          ],
+          "where" => [
+          [
+          "field_name" => "TR_CANCELATION_MVT_DETAIL_HEADER_ID",
+          "operator" => "=",
+          "value" => $header_data["TR_CANCELLATION_MVT_ID"]
+          ]
+          ]
+          ]);
+          if(!$detail_data)
+          { */
         $detail_data = std_get([
-            "select" => ["TR_CANCELATION_MVT_DETAIL.*","TR_PO_DETAIL.TR_PO_DETAIL_MATERIAL_LINE_NUM"],
+            "select" => ["TR_CANCELATION_MVT_DETAIL.*"],
             "table_name" => "TR_CANCELATION_MVT_DETAIL",
             "join" => [
                 [
@@ -948,13 +955,6 @@ function generate_cancellation_csv($cancellation_id, $plant_code)
                     "on1" => "TR_TP_DETAIL.TR_TP_DETAIL_GR_DETAIL_ID",
                     "operator" => "=",
                     "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
-                ],
-                [
-                    "join_type" => "inner",
-                    "table_name" => "TR_PO_DETAIL",
-                    "on1" => "TR_PO_DETAIL.TR_PO_DETAIL_ID",
-                    "operator" => "=",
-                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_PO_DETAIL_ID",
                 ]
             ],
             "where" => [
@@ -965,38 +965,8 @@ function generate_cancellation_csv($cancellation_id, $plant_code)
                 ]
             ]
         ]);
-        if(!$detail_data)
-            {*/
-            $detail_data = std_get([
-                    "select" => ["TR_CANCELATION_MVT_DETAIL.*"],
-                    "table_name" => "TR_CANCELATION_MVT_DETAIL",
-                    "join" => [
-                        [
-                            "join_type" => "inner",
-                            "table_name" => "TR_TP_DETAIL",
-                            "on1" => "TR_CANCELATION_MVT_DETAIL.TR_CANCELATION_MVT_DETAIL_TRANSACTION_DETAIL_IDS",
-                            "operator" => "=",
-                            "on2" => "TR_TP_DETAIL.TR_TP_DETAIL_ID",
-                        ],
-                        [
-                            "join_type" => "inner",
-                            "table_name" => "TR_GR_DETAIL",
-                            "on1" => "TR_TP_DETAIL.TR_TP_DETAIL_GR_DETAIL_ID",
-                            "operator" => "=",
-                            "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
-                        ]
-                    ],
-                    "where" => [
-                        [
-                            "field_name" => "TR_CANCELATION_MVT_DETAIL_HEADER_ID",
-                            "operator" => "=",
-                            "value" => $header_data["TR_CANCELLATION_MVT_ID"]
-                        ]
-                    ]
-                ]);
-            //}
-    }
-    else if ($header_data["TR_CANCELLATION_MVT_SAP_CODE"] == "Y22") {
+        //}
+    } else if ($header_data["TR_CANCELLATION_MVT_SAP_CODE"] == "Y22") {
         $detail_data = std_get([
             "select" => ["TR_CANCELATION_MVT_DETAIL.*"],
             "table_name" => "TR_CANCELATION_MVT_DETAIL",
@@ -1026,7 +996,7 @@ function generate_cancellation_csv($cancellation_id, $plant_code)
         ]);
     }
 
-    $fp = fopen(storage_path('app/public/INCOMING2/MIGO/'."MIGO_IN_".$plant_code."_CANCEL_".str_pad($cancellation_id, 7, "0", STR_PAD_LEFT).date("YmdHis").".csv"), 'w');
+    $fp = fopen(storage_path('app/public/INCOMING2/MIGO/' . "MIGO_IN_" . $plant_code . "_CANCEL_" . str_pad($cancellation_id, 7, "0", STR_PAD_LEFT) . date("YmdHis") . ".csv"), 'w');
 
     fputcsv($fp, [
         "CANCEL",
@@ -1034,12 +1004,12 @@ function generate_cancellation_csv($cancellation_id, $plant_code)
         $header_data["TR_CANCELLATION_MVT_TR_DOC"],
         $header_data["TR_CANCELLATION_MVT_TR_DOC_YEAR"],
         $header_data["TR_CANCELLATION_MVT_CODE"],
-        convert_to_dmy(str_replace("-",".",$header_data["TR_CANCELLATION_MVT_POSTING_DATE"])),
+        convert_to_dmy(str_replace("-", ".", $header_data["TR_CANCELLATION_MVT_POSTING_DATE"])),
         date("dmY"),
         "",
         "",
         $cancellation_id
-    ], ";");
+            ], ";");
 
     foreach ($detail_data as $row) {
         fputcsv($fp, [
@@ -1057,13 +1027,12 @@ function generate_cancellation_csv($cancellation_id, $plant_code)
             "",
             "",
             "",
-        ], ";");
+                ], ";");
     }
     fclose($fp);
 }
 
-function generate_stock_opname_csv($pid_id, $plant_code)
-{
+function generate_stock_opname_csv($pid_id, $plant_code) {
     $header_data = std_get([
         "select" => ["*"],
         "table_name" => "TR_PID_HEADER",
@@ -1095,16 +1064,16 @@ function generate_stock_opname_csv($pid_id, $plant_code)
         ],
     ]);
 
-    $fp = fopen(storage_path('app/public/INCOMING2/PID/'."PID_IN_".$plant_code."_".str_pad($pid_id, 7, "0", STR_PAD_LEFT)."_".date("YmdHis").".csv"), 'w');
+    $fp = fopen(storage_path('app/public/INCOMING2/PID/' . "PID_IN_" . $plant_code . "_" . str_pad($pid_id, 7, "0", STR_PAD_LEFT) . "_" . date("YmdHis") . ".csv"), 'w');
 
     fputcsv($fp, [
         $header_data["TR_PID_HEADER_SAP_NO"],
         $header_data["TR_PID_HEADER_YEAR"],
-        convert_to_dmy(str_replace("-",".",$header_data["TR_PID_COUNT_DATE"])),
-        convert_to_dmy(str_replace("-",".",$header_data["TR_PID_POSTING_DATE"])),
+        convert_to_dmy(str_replace("-", ".", $header_data["TR_PID_COUNT_DATE"])),
+        convert_to_dmy(str_replace("-", ".", $header_data["TR_PID_POSTING_DATE"])),
         $header_data["TR_PID_HEADER_PLANT"],
         $header_data["TR_PID_HEADER_SLOC"]
-    ], ";");
+            ], ";");
 
     $counter = 1;
     foreach ($detail_data as $row) {
@@ -1116,7 +1085,7 @@ function generate_stock_opname_csv($pid_id, $plant_code)
                 $row["TR_PID_DETAIL_MATERIAL_MOBILE_QTY"],
                 $row["TR_PID_DETAIL_MATERIAL_UOM"],
                 "X"
-            ], ";");
+                    ], ";");
         } else {
             fputcsv($fp, [
                 $row["TR_PID_DETAIL_LINE_MATERIAL"],
@@ -1124,15 +1093,14 @@ function generate_stock_opname_csv($pid_id, $plant_code)
                 $row["TR_PID_DETAIL_MATERIAL_SAP_BATCH"],
                 $row["TR_PID_DETAIL_MATERIAL_MOBILE_QTY"],
                 $row["TR_PID_DETAIL_MATERIAL_UOM"]
-            ], ";");
+                    ], ";");
         }
         $counter++;
     }
     fclose($fp);
 }
 
-function get_gr_detail_qr($gr_detail_id)
-{
+function get_gr_detail_qr($gr_detail_id) {
     $gr_detail = std_get([
         "select" => ["TR_GR_DETAIL_QR_CODE_NUMBER"],
         "table_name" => "TR_GR_DETAIL",
@@ -1147,8 +1115,7 @@ function get_gr_detail_qr($gr_detail_id)
     ]);
     if ($gr_detail == NULL) {
         return NULL;
-    }
-    else{
+    } else {
         return $gr_detail["TR_GR_DETAIL_QR_CODE_NUMBER"];
     }
 }
@@ -1167,7 +1134,7 @@ function get_tp_material($params = NULL) {
                 $query->where($row["field_name"], $row["operator"], $row["value"]);
             }
         }
-        
+
         if (isset($params["where_in"])) {
             $query->whereIn($params["where_in"]["field_name"], $params["where_in"]["ids"]);
         }
@@ -1180,14 +1147,11 @@ function get_tp_material($params = NULL) {
                 if (isset($row["join_type"]) && isset($row["table_name"]) && isset($row["on1"]) && isset($row["operator"]) && isset($row["on2"])) {
                     if (strtolower($row["join_type"]) == "inner") {
                         $query->join($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
-                    }
-                    elseif (strtolower($row["join_type"]) == "left") {
+                    } elseif (strtolower($row["join_type"]) == "left") {
                         $query->leftJoin($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
-                    }
-                    elseif (strtolower($row["join_type"]) == "right") {
+                    } elseif (strtolower($row["join_type"]) == "right") {
                         $query->rightJoin($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
                     }
-                    
                 }
             }
         }
@@ -1198,7 +1162,7 @@ function get_tp_material($params = NULL) {
                 }
             }
         }
-    
+
         if (isset($params["group_by"])) {
             $query->groupBy($params["group_by"]);
         }
@@ -1214,7 +1178,7 @@ function get_tp_material($params = NULL) {
         if (isset($params["dump"]) && $params["dump"] == true) {
             $query->dump();
         }
-    
+
         if (isset($params["distinct"]) && $params["distinct"] == true) {
             $query->distinct();
         }
@@ -1237,23 +1201,20 @@ function get_tp_material($params = NULL) {
 
         $query->where(function ($query) {
             $query->where('TR_GR_DETAIL_SLOC', '=', "1419")
-            ->orWhere('TR_GR_DETAIL_SLOC', '=', "1900");
+                    ->orWhere('TR_GR_DETAIL_SLOC', '=', "1900");
         });
 
         if (isset($params["first_row"]) && $params["first_row"] === true) {
             return (array) $query->first();
-        }
-        else{
+        } else {
             return json_decode($query->get()->toJSON(), true);
         }
-    }
-    else{
+    } else {
         return false;
     }
 }
 
-function insert_material_log($array_data)
-{
+function insert_material_log($array_data) {
     return std_insert([
         "table_name" => "LG_MATERIAL",
         "data" => [
@@ -1291,14 +1252,11 @@ function get_cost_center($params = NULL) {
                 if (isset($row["join_type"]) && isset($row["table_name"]) && isset($row["on1"]) && isset($row["operator"]) && isset($row["on2"])) {
                     if (strtolower($row["join_type"]) == "inner") {
                         $query->join($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
-                    }
-                    elseif (strtolower($row["join_type"]) == "left") {
+                    } elseif (strtolower($row["join_type"]) == "left") {
                         $query->leftJoin($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
-                    }
-                    elseif (strtolower($row["join_type"]) == "right") {
+                    } elseif (strtolower($row["join_type"]) == "right") {
                         $query->rightJoin($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
                     }
-                    
                 }
             }
         }
@@ -1309,7 +1267,7 @@ function get_cost_center($params = NULL) {
                 }
             }
         }
-    
+
         if (isset($params["group_by"])) {
             $query->groupBy($params["group_by"]);
         }
@@ -1325,7 +1283,7 @@ function get_cost_center($params = NULL) {
         if (isset($params["dump"]) && $params["dump"] == true) {
             $query->dump();
         }
-    
+
         if (isset($params["distinct"]) && $params["distinct"] == true) {
             $query->distinct();
         }
@@ -1347,12 +1305,10 @@ function get_cost_center($params = NULL) {
         }
         if (isset($params["first_row"]) && $params["first_row"] === true) {
             return (array) $query->first();
-        }
-        else{
+        } else {
             return json_decode($query->get()->toJSON(), true);
         }
-    }
-    else{
+    } else {
         return false;
     }
 }

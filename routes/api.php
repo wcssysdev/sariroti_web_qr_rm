@@ -73,4 +73,26 @@ Route::group(['middleware' => 'check_user_token'], function () {
     Route::post('transaction/pid/submit', 'Api\Transaction\StockOpname\StockOpnameController@submit');
 
     Route::post('transaction/pid/manual_submit', 'Api\Transaction\StockOpname\ManualAdjustmentController@submit');
+    
+    /** 
+     * 2023 Sept
+     * 
+     * Master Material diambil hanya dari table GR yang sudah dikirim ke SAP
+     * API Master Material dibuat setelah API List GR dan List GI
+     */
+    Route::get('master/goods/cc', 'Api\Master\GoodsController@get_cc');
+    Route::get('master/goods/gl', 'Api\Master\GoodsController@get_gl');
+    Route::get('master/goods/mvt', 'Api\Master\GoodsController@get_mvt_type');
+    Route::get('master/goods/uom', 'Api\Master\GoodsController@get_uom');
+    Route::get('master/goods/mat', 'Api\Master\GoodsController@get_list_mat');
+    Route::get('master/goods/po_gr', 'Api\Master\GoodsController@get_list_po_gr');
+    Route::get('master/goods/po_gi', 'Api\Master\GoodsController@get_list_po_gi');
+    
+    /**
+     * 2023 Nov
+     * 
+     * TP - List Material
+     */
+    Route::get('master/goods/tp_materials', 'Api\Master\GoodsController@get_tp_list_materials');    
+    Route::get('master/goods/tp_gr_detail', 'Api\Master\GoodsController@get_tp_list_gr_details_by_mat_code');    
 });

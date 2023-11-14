@@ -183,7 +183,7 @@ class ReceiveSapResponse extends Command
                     ]);
                 }
                 elseif ($arr_data["transaction_code"] == "GI") {
-                    echo "masuk gi";
+//                    echo "masuk gi";
                     $update_res = std_update([
                         "table_name" => "TR_GI_SAPHEADER",
                         "where" => ["TR_GI_SAPHEADER_ID" => $arr_data["id_web"]],
