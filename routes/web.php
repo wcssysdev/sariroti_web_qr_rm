@@ -84,6 +84,9 @@ Route::group(['middleware' => 'check_user_session:1,2,3,4,5,6'], function () {
     //Laporan
     Route::get('/report/stock', 'Report\StockController@index')->name('stock_report_view');
     Route::get('/report/good_movement', 'Report\GoodMovementController@index')->name('good_movement_report_view');
+    Route::get('/report/good_movement/excel', 'Report\GoodMovementController@excel')->name('goods_mvt_excel');
+    Route::get('/report/good_movement/detail', 'Report\GoodMovementController@detail')->name('goods_mvt_detail');
+    Route::get('/report/good_movement/detail_excel', 'Report\GoodMovementController@detail_excel')->name('goods_mvt_detail_excel');
 
     //Goods Movement - Tranfer Posting
     Route::get('/goods_movement/transfer_posting/view', 'GoodsMovement\TransferPosting\ViewController@index')->name('goods_movement_transfer_posting_view');

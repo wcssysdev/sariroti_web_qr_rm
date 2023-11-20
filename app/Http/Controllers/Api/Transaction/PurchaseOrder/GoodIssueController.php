@@ -1,16 +1,16 @@
 <?php
 
 namespace App\Http\Controllers\Api\Transaction\PurchaseOrder;
+
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use DB;
 
-class GoodIssueController extends Controller
-{
-    public function po_view(Request $request)
-    {
+class GoodIssueController extends Controller {
+
+    public function po_view(Request $request) {
         $conditions = [
             [
                 "field_name" => "TR_PO_HEADER_STATUS",
@@ -30,7 +30,7 @@ class GoodIssueController extends Controller
         ];
 
         if (!isset($request->start_date) || $request->start_date == "") {
-            $request->start_date = date("Y-m-")."01";
+            $request->start_date = date("Y-m-") . "01";
         }
         if (isset($request->start_date) && $request->start_date != "") {
             $conditions = array_merge($conditions, [
@@ -84,7 +84,6 @@ class GoodIssueController extends Controller
             "where" => $conditions
         ]);
 
-
         $conditions = [
             [
                 "field_name" => "TR_PO_HEADER_TYPE",
@@ -114,7 +113,7 @@ class GoodIssueController extends Controller
         ];
 
         if (!isset($request->start_date) || $request->start_date == "") {
-            $request->start_date = date("Y-m-")."01";
+            $request->start_date = date("Y-m-") . "01";
         }
         if (isset($request->start_date) && $request->start_date != "") {
             $conditions = array_merge($conditions, [
@@ -159,7 +158,7 @@ class GoodIssueController extends Controller
         }
 
         $po_gi_data_zret = std_get([
-            "select" => ["TR_PO_HEADER.*","MA_VENDOR.MA_VENDOR_NAME"],
+            "select" => ["TR_PO_HEADER.*", "MA_VENDOR.MA_VENDOR_NAME"],
             "table_name" => "TR_PO_HEADER",
             "join" => [
                 [
@@ -181,15 +180,13 @@ class GoodIssueController extends Controller
             "distinct" => true
         ]);
 
-
         return response()->json([
-            "status" => "OK",
-            "data" => array_merge($po_gi_non_zret, $po_gi_data_zret)
-        ],200);
+                    "status" => "OK",
+                    "data" => array_merge($po_gi_non_zret, $po_gi_data_zret)
+                        ], 200);
     }
 
-    public function po_header(Request $request)
-    {
+    public function po_header(Request $request) {
         $po_header = std_get([
             "select" => ["*"],
             "table_name" => "TR_PO_HEADER",
@@ -203,17 +200,15 @@ class GoodIssueController extends Controller
             "first_row" => true
         ]);
         return response()->json([
-            "status" => "OK",
-            "data" => $po_header
-        ],200);
+                    "status" => "OK",
+                    "data" => $po_header
+                        ], 200);
     }
 
-    public function po_detail(Request $request)
-    {
+    public function po_detail(Request $request) {
         if (isset($selects)) {
             $select_fields = $selects;
-        }
-        else {
+        } else {
             $select_fields = ["*"];
         }
 
@@ -266,17 +261,16 @@ class GoodIssueController extends Controller
         ]);
 
         return response()->json([
-            "status" => "OK",
-            "data" => [
-                "header_data" => $data,
-                "detail_data" => $detail_data,
-                "gi_data" => $gi_data
-            ]
-        ],200);
+                    "status" => "OK",
+                    "data" => [
+                        "header_data" => $data,
+                        "detail_data" => $detail_data,
+                        "gi_data" => $gi_data
+                    ]
+                        ], 200);
     }
 
-    public function gi_detail(Request $request)
-    {
+    public function gi_detail(Request $request) {
         $gi_header_data = std_get([
             "select" => ["*"],
             "table_name" => "TR_GI_SAPHEADER",
@@ -303,16 +297,66 @@ class GoodIssueController extends Controller
         ]);
 
         return response()->json([
-            "status" => "OK",
-            "data" => [
-                "gi_header_data" => $gi_header_data,
-                "gi_detail_data" => $gi_detail_data
-            ]
-        ],200);
+                    "status" => "OK",
+                    "data" => [
+                        "gi_header_data" => $gi_header_data,
+                        "gi_detail_data" => $gi_detail_data
+                    ]
+                        ], 200);
     }
 
-    public function scan_qr(Request $request)
-    {
+    public function scan_qr_non_plan(Request $request) {
+        try {
+
+            if (empty($request->TR_GR_DETAIL_QR_CODE_NUMBER)) {
+                return response()->json([
+                            "status" => "Bad Request",
+                            "data" => [
+                                "gr_detail_data" => []
+                            ]
+                                ], 400);
+            }
+
+
+            $gr_detail_data = std_get([
+                "select" => ["*"],
+                "table_name" => "TR_GR_DETAIL",
+                "where" => [
+                    [
+                        "field_name" => "TR_GR_DETAIL_QR_CODE_NUMBER",
+                        "operator" => "=",
+                        "value" => $request->TR_GR_DETAIL_QR_CODE_NUMBER
+                    ]
+                ],
+                "first_row" => true
+            ]);
+
+            if ($gr_detail_data) {
+                return response()->json([
+                            "status" => "OK",
+                            "data" => [
+                                "gr_detail_data" => $gr_detail_data
+                            ]
+                                ], 200);
+            } else {
+                return response()->json([
+                            "status" => "Not Found",
+                            "data" => [
+                                "gr_detail_data" => []
+                            ]
+                                ], 404);
+            }
+        } catch (Exception $ex) {
+            return response()->json([
+                        "status" => "Internal server error.",
+                        "data" => [
+                            "gr_detail_data" => []
+                        ]
+                            ], 500);
+        }
+    }
+
+    public function scan_qr(Request $request) {
         $gi_detail_data = std_get([
             "select" => ["*"],
             "table_name" => "TR_GI_SAPDETAIL",
@@ -332,20 +376,19 @@ class GoodIssueController extends Controller
         ]);
 
         return response()->json([
-            "status" => "OK",
-            "data" => [
-                "gi_detail_data" => $gi_detail_data
-            ]
-        ],200);
+                    "status" => "OK",
+                    "data" => [
+                        "gi_detail_data" => $gi_detail_data
+                    ]
+                        ], 200);
     }
 
-    public function save_validate_input($request)
-    {
-        $validate = Validator::make($request->all(),[
-            "TR_GI_SAPHEADER_ID" => "required|max:255",
-            "TR_GI_SAPHEADER_PSTG_DATE" => "required|max:255",
-            "TR_GI_SAPHEADER_TXT" => "required|max:255",
-            "TR_GI_SAPHEADER_PSTG_DATE" => "required|max:255",
+    public function save_validate_input($request) {
+        $validate = Validator::make($request->all(), [
+                    "TR_GI_SAPHEADER_ID" => "required|max:255",
+                    "TR_GI_SAPHEADER_PSTG_DATE" => "required|max:255",
+                    "TR_GI_SAPHEADER_TXT" => "required|max:255",
+                    "TR_GI_SAPHEADER_PSTG_DATE" => "required|max:255",
         ]);
 
         $attributeNames = [
@@ -356,27 +399,35 @@ class GoodIssueController extends Controller
         ];
 
         $validate->setAttributeNames($attributeNames);
-        if($validate->fails()){
+        if ($validate->fails()) {
             $errors = $validate->errors();
             return $errors->all();
         }
         return true;
     }
-    
-    public function submit(Request $request)
-    {
+
+    public function submit(Request $request) {
+        /**
+         * 2023 Nov
+         * waluyosejati99@gmail.com
+         * 
+         * GI from mobile, adalah GI non plan
+         * GI upload dari mobile adala new GI
+         * 
+         * PO Left Qty harus langsung dipotong
+         */
         $validation_res = $this->save_validate_input($request);
         if ($validation_res !== true) {
             return response()->json([
-                'message' => $validation_res
-            ],400);
+                        'message' => $validation_res
+                            ], 400);
         }
 
         $timestamp = date("Y-m-d H:i:s");
         if ($request->gi_materials == NULL) {
             return response()->json([
-                'message' => "GI Material Data Not Exist / Empty"
-            ],500);
+                        'message' => "GI Material Data Not Exist / Empty"
+                            ], 500);
         }
 
         $gi_header = std_get([
@@ -392,32 +443,29 @@ class GoodIssueController extends Controller
             "first_row" => true
         ]);
 
-        if ($gi_header == NULL) {
+        if ($gi_header && ($gi_header["TR_GI_SAPHEADER_MOBILE_IS_SUBMIT"] == true)) {
             return response()->json([
-                'message' => "GI Not Exist"
-            ],400);
-        }
-        
-        if ($gi_header["TR_GI_SAPHEADER_MOBILE_IS_SUBMIT"] == true) {
-            return response()->json([
-                'message' => "Data already Submitted, Transaction Cancelled"
-            ],400);
+                        'message' => "Data already Submitted, Transaction Cancelled"
+                            ], 400);
         }
 
+        /**
+         * Insert GI Header
+         */
         $gi_material_arr = [];
         foreach ($request->gi_materials as $row) {
 
             $filename = null;
             if (isset($row["materialPhoto"]) && $row["materialPhoto"] != NULL && $row["materialPhoto"] != "") {
-                $upload_dir = public_path()."/storage/GI_images/";
+                $upload_dir = public_path() . "/storage/GI_images/";
                 $img = $row["materialPhoto"];
                 $img = str_replace('data:image/jpeg;base64,', '', $img);
                 $img = str_replace(' ', '+', $img);
                 $image_data = base64_decode($img);
                 $unique_id = uniqid();
-                $file = $upload_dir.$unique_id.'.jpeg';
+                $file = $upload_dir . $unique_id . '.jpeg';
                 $success = file_put_contents($file, $image_data);
-                $filename = $unique_id.'.jpeg';
+                $filename = $unique_id . '.jpeg';
             }
 
             $gi_detail = std_get([
@@ -434,9 +482,9 @@ class GoodIssueController extends Controller
             ]);
             if ($row["TR_GI_SAPDETAIL_MOBILE_QTY"] > $gi_detail["TR_GI_SAPDETAIL_GI_QTY"]) {
                 return response()->json([
-                    "status" => "ERR",
-                    "data" => "Mobile QTY must be < than GI Detail"
-                ],500);
+                            "status" => "ERR",
+                            "data" => "Mobile QTY must be < than GI Detail"
+                                ], 500);
             }
         }
 
@@ -457,15 +505,15 @@ class GoodIssueController extends Controller
 
         $filename_header = null;
         if (isset($request->GI_PHOTO) && $request->GI_PHOTO != NULL && $request->GI_PHOTO != "") {
-            $upload_dir = public_path()."/storage/GI_images/";
+            $upload_dir = public_path() . "/storage/GI_images/";
             $img = $request->GI_PHOTO;
             $img = str_replace('data:image/jpeg;base64,', '', $img);
             $img = str_replace(' ', '+', $img);
             $image_data = base64_decode($img);
             $unique_id = uniqid();
-            $file = $upload_dir.$unique_id.'.jpeg';
+            $file = $upload_dir . $unique_id . '.jpeg';
             $success = file_put_contents($file, $image_data);
-            $filename_header = $unique_id.'.jpeg';
+            $filename_header = $unique_id . '.jpeg';
         }
 
         std_update([
@@ -496,14 +544,14 @@ class GoodIssueController extends Controller
                 "first_row" => true
             ]);
             // if ($row["TR_GI_SAPDETAIL_MOBILE_QTY"] < $gi_detail["TR_GI_SAPDETAIL_GI_QTY"]) {
-                // $difference = $tp_detail["TR_GI_SAPDETAIL_GI_QTY"] - $row["TR_GI_SAPDETAIL_MOBILE_QTY"];
-                std_update([
-                    "table_name" => "TR_GR_DETAIL",
-                    "where" => ["TR_GR_DETAIL_ID" => $gi_detail["TR_GI_SAPDETAIL_GR_DETAIL_ID"]],
-                    "data" => [
-                        "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - '.$row["TR_GI_SAPDETAIL_MOBILE_QTY"])
-                    ]
-                ]);
+            // $difference = $tp_detail["TR_GI_SAPDETAIL_GI_QTY"] - $row["TR_GI_SAPDETAIL_MOBILE_QTY"];
+            std_update([
+                "table_name" => "TR_GR_DETAIL",
+                "where" => ["TR_GR_DETAIL_ID" => $gi_detail["TR_GI_SAPDETAIL_GR_DETAIL_ID"]],
+                "data" => [
+                    "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GI_SAPDETAIL_MOBILE_QTY"])
+                ]
+            ]);
             // }
 
             insert_material_log([
@@ -521,13 +569,174 @@ class GoodIssueController extends Controller
         generate_gi_csv($request->TR_GI_SAPHEADER_ID, $request->user_data->plant);
 
         return response()->json([
-            "status" => "OK",
-            "data" => "GI Successfully Created"
-        ],200);
+                    "status" => "OK",
+                    "data" => "GI Successfully Created"
+                        ], 200);
     }
-    
-    public function history_header(Request $request)
-    {
+
+    public function submit_nov_2023(Request $request) {
+        $validation_res = $this->save_validate_input($request);
+        if ($validation_res !== true) {
+            return response()->json([
+                        'message' => $validation_res
+                            ], 400);
+        }
+
+        $timestamp = date("Y-m-d H:i:s");
+        if ($request->gi_materials == NULL) {
+            return response()->json([
+                        'message' => "GI Material Data Not Exist / Empty"
+                            ], 500);
+        }
+
+        $gi_header = std_get([
+            "select" => ["*"],
+            "table_name" => "TR_GI_SAPHEADER",
+            "where" => [
+                [
+                    "field_name" => "TR_GI_SAPHEADER_ID",
+                    "operator" => "=",
+                    "value" => $request->TR_GI_SAPHEADER_ID,
+                ]
+            ],
+            "first_row" => true
+        ]);
+
+        if ($gi_header == NULL) {
+            return response()->json([
+                        'message' => "GI Not Exist"
+                            ], 400);
+        }
+
+        if ($gi_header["TR_GI_SAPHEADER_MOBILE_IS_SUBMIT"] == true) {
+            return response()->json([
+                        'message' => "Data already Submitted, Transaction Cancelled"
+                            ], 400);
+        }
+
+        $gi_material_arr = [];
+        foreach ($request->gi_materials as $row) {
+
+            $filename = null;
+            if (isset($row["materialPhoto"]) && $row["materialPhoto"] != NULL && $row["materialPhoto"] != "") {
+                $upload_dir = public_path() . "/storage/GI_images/";
+                $img = $row["materialPhoto"];
+                $img = str_replace('data:image/jpeg;base64,', '', $img);
+                $img = str_replace(' ', '+', $img);
+                $image_data = base64_decode($img);
+                $unique_id = uniqid();
+                $file = $upload_dir . $unique_id . '.jpeg';
+                $success = file_put_contents($file, $image_data);
+                $filename = $unique_id . '.jpeg';
+            }
+
+            $gi_detail = std_get([
+                "select" => ["*"],
+                "table_name" => "TR_GI_SAPDETAIL",
+                "where" => [
+                    [
+                        "field_name" => "TR_GI_SAPDETAIL_ID",
+                        "operator" => "=",
+                        "value" => $row["TR_GI_SAPDETAIL_ID"]
+                    ]
+                ],
+                "first_row" => true
+            ]);
+            if ($row["TR_GI_SAPDETAIL_MOBILE_QTY"] > $gi_detail["TR_GI_SAPDETAIL_GI_QTY"]) {
+                return response()->json([
+                            "status" => "ERR",
+                            "data" => "Mobile QTY must be < than GI Detail"
+                                ], 500);
+            }
+        }
+
+        foreach ($request->gi_materials as $row) {
+            std_update([
+                "table_name" => "TR_GI_SAPDETAIL",
+                "where" => ["TR_GI_SAPDETAIL_ID" => $row["TR_GI_SAPDETAIL_ID"]],
+                "data" => [
+                    "TR_GI_SAPDETAIL_PHOTO" => $filename,
+                    "TR_GI_SAPDETAIL_MOBILE_QTY" => $row["TR_GI_SAPDETAIL_MOBILE_QTY"],
+                    "TR_GI_SAPDETAIL_MOBILE_UOM" => $row["TR_GI_SAPDETAIL_MOBILE_UOM"],
+                    "TR_GI_SAPDETAIL_NOTES" => $row["TR_GI_SAPDETAIL_NOTES"],
+                    "TR_GI_SAPDETAIL_UPDATED_BY" => $request->user_data->user_id,
+                    "TR_GI_SAPDETAIL_UPDATED_TIMESTAMP" => $timestamp
+                ]
+            ]);
+        }
+
+        $filename_header = null;
+        if (isset($request->GI_PHOTO) && $request->GI_PHOTO != NULL && $request->GI_PHOTO != "") {
+            $upload_dir = public_path() . "/storage/GI_images/";
+            $img = $request->GI_PHOTO;
+            $img = str_replace('data:image/jpeg;base64,', '', $img);
+            $img = str_replace(' ', '+', $img);
+            $image_data = base64_decode($img);
+            $unique_id = uniqid();
+            $file = $upload_dir . $unique_id . '.jpeg';
+            $success = file_put_contents($file, $image_data);
+            $filename_header = $unique_id . '.jpeg';
+        }
+
+        std_update([
+            "table_name" => "TR_GI_SAPHEADER",
+            "where" => ["TR_GI_SAPHEADER_ID" => $request->TR_GI_SAPHEADER_ID],
+            "data" => [
+                "TR_GI_SAPHEADER_PHOTO" => $filename_header,
+                "TR_GI_SAPHEADER_BOL" => $request->TR_GI_SAPHEADER_BOL,
+                "TR_GI_SAPHEADER_TXT" => $request->TR_GI_SAPHEADER_TXT,
+                "TR_GI_SAPHEADER_PSTG_DATE" => $request->TR_GI_SAPHEADER_PSTG_DATE,
+                "TR_GI_SAPHEADER_MOBILE_IS_SUBMIT" => true,
+                "TR_GI_SAPHEADER_UPDATED_BY" => $request->user_data->user_id,
+                "TR_GI_SAPHEADER_UPDATED_TIMESTAMP" => $timestamp
+            ]
+        ]);
+
+        foreach ($request->gi_materials as $row) {
+            $gi_detail = std_get([
+                "select" => ["*"],
+                "table_name" => "TR_GI_SAPDETAIL",
+                "where" => [
+                    [
+                        "field_name" => "TR_GI_SAPDETAIL_ID",
+                        "operator" => "=",
+                        "value" => $row["TR_GI_SAPDETAIL_ID"]
+                    ]
+                ],
+                "first_row" => true
+            ]);
+            // if ($row["TR_GI_SAPDETAIL_MOBILE_QTY"] < $gi_detail["TR_GI_SAPDETAIL_GI_QTY"]) {
+            // $difference = $tp_detail["TR_GI_SAPDETAIL_GI_QTY"] - $row["TR_GI_SAPDETAIL_MOBILE_QTY"];
+            std_update([
+                "table_name" => "TR_GR_DETAIL",
+                "where" => ["TR_GR_DETAIL_ID" => $gi_detail["TR_GI_SAPDETAIL_GR_DETAIL_ID"]],
+                "data" => [
+                    "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GI_SAPDETAIL_MOBILE_QTY"])
+                ]
+            ]);
+            // }
+
+            insert_material_log([
+                "material_code" => $gi_detail["TR_GI_SAPDETAIL_MATERIAL_CODE"],
+                "plant_code" => $request->user_data->plant,
+                "posting_date" => $request->TR_GI_SAPHEADER_PSTG_DATE,
+                "movement_type" => $gi_header["TR_GI_SAPHEADER_MVT_CODE"],
+                "gr_detail_id" => $gi_detail["TR_GI_SAPDETAIL_GR_DETAIL_ID"],
+                "base_qty" => -$row["TR_GI_SAPDETAIL_MOBILE_QTY"],
+                "base_uom" => $gi_detail["TR_GI_SAPDETAIL_BASE_UOM"],
+                "created_by" => $request->user_data->user_id
+            ]);
+        }
+
+        generate_gi_csv($request->TR_GI_SAPHEADER_ID, $request->user_data->plant);
+
+        return response()->json([
+                    "status" => "OK",
+                    "data" => "GI Successfully Created"
+                        ], 200);
+    }
+
+    public function history_header(Request $request) {
         $plant_code = $request->user_data->plant;
         $conditions = [
             [
@@ -543,14 +752,14 @@ class GoodIssueController extends Controller
         ];
 
         if (!isset($request->start_date) || $request->start_date == "") {
-            $request->start_date = date("Y-m-")."01";
+            $request->start_date = date("Y-m-") . "01";
         }
         if (isset($request->start_date) && $request->start_date != "") {
             $conditions = array_merge($conditions, [
                 [
                     "field_name" => "TR_GI_SAPHEADER_CREATED_TIMESTAMP",
                     "operator" => ">=",
-                    "value" => $request->start_date." 00:00:00"
+                    "value" => $request->start_date . " 00:00:00"
                 ]
             ]);
         }
@@ -563,7 +772,7 @@ class GoodIssueController extends Controller
                 [
                     "field_name" => "TR_GI_SAPHEADER_CREATED_TIMESTAMP",
                     "operator" => "<=",
-                    "value" => $request->end_date." 23:59:59"
+                    "value" => $request->end_date . " 23:59:59"
                 ]
             ]);
         }
@@ -576,13 +785,12 @@ class GoodIssueController extends Controller
         ]);
 
         return response()->json([
-            "status" => "OK",
-            "data" => $header_data
-        ],200);
+                    "status" => "OK",
+                    "data" => $header_data
+                        ], 200);
     }
 
-    public function history_detail(Request $request)
-    {
+    public function history_detail(Request $request) {
         $header_data = std_get([
             "select" => "TR_GI_SAPHEADER.*",
             "table_name" => "TR_GI_SAPHEADER",
@@ -597,7 +805,7 @@ class GoodIssueController extends Controller
         ]);
 
         if (isset($header_data["TR_GI_SAPHEADER_PHOTO"]) && $header_data["TR_GI_SAPHEADER_PHOTO"] != NULL && $header_data["TR_GI_SAPHEADER_PHOTO"] != "") {
-            $header_data["TR_GI_SAPHEADER_PHOTO"] = asset('storage/GI_images/')."/".$header_data["TR_GI_SAPHEADER_PHOTO"];
+            $header_data["TR_GI_SAPHEADER_PHOTO"] = asset('storage/GI_images/') . "/" . $header_data["TR_GI_SAPHEADER_PHOTO"];
         }
 
         $detail_data = std_get([
@@ -612,18 +820,18 @@ class GoodIssueController extends Controller
             ]
         ]);
 
-        for ($i=0; $i < count($detail_data); $i++) { 
+        for ($i = 0; $i < count($detail_data); $i++) {
             if (isset($detail_data[$i]["TR_GI_SAPDETAIL_PHOTO"]) && $detail_data[$i]["TR_GI_SAPDETAIL_PHOTO"] != NULL && $detail_data[$i]["TR_GI_SAPDETAIL_PHOTO"] != "") {
-                $detail_data[$i]["TR_GI_SAPDETAIL_PHOTO"] = asset('storage/GI_images/')."/".$detail_data[$i]["TR_GI_SAPDETAIL_PHOTO"];
+                $detail_data[$i]["TR_GI_SAPDETAIL_PHOTO"] = asset('storage/GI_images/') . "/" . $detail_data[$i]["TR_GI_SAPDETAIL_PHOTO"];
             }
         }
 
         return response()->json([
-            "status" => "OK",
-            "data" => [
-                "header" => $header_data,
-                "detail" => $detail_data,
-            ]
-        ],200);
+                    "status" => "OK",
+                    "data" => [
+                        "header" => $header_data,
+                        "detail" => $detail_data,
+                    ]
+                        ], 200);
     }
 }

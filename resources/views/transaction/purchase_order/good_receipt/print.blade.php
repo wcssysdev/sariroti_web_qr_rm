@@ -19,7 +19,7 @@
 		    }
 
 		    @page {
-		        size: 8.5in 5.5in; /* . Random dot? */;
+		        size: 8.5in 5.5in; /* . Random dot? */
 		    }
 		}
     </style>

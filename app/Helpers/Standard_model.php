@@ -26,7 +26,7 @@ function std_get($params = NULL) {
         }
         if (isset($params["join"])) {
             foreach ($params["join"] as $row) {
-                if (isset($row["join_type"]) && isset($row["table_name"]) && isset($row["on1"]) && isset($row["operator"]) && isset($row["on2"])) {
+                if (isset($row["join_type"]) && isset($row["table_name"]) && ((isset($row["on1"]) && isset($row["operator"]) && isset($row["on2"]))) || isset($row['clauses'])) {
                     if (strtolower($row["join_type"]) == "inner") {
                         $query->join($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
                     }
@@ -35,8 +35,13 @@ function std_get($params = NULL) {
                     }
                     elseif (strtolower($row["join_type"]) == "right") {
                         $query->rightJoin($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
+                    } elseif (strtolower($row["join_type"]) == "multi_clause") {
+                        $query->leftJoin($row["table_name"], function ($join) use ($row) {
+                            foreach ($row['clauses'] as $clause) {
+                                $join->on($clause['on1'], $clause["operator"], $clause["on2"]);
+                            }
+                        });
                     }
-                    
                 }
             }
         }
@@ -47,7 +52,7 @@ function std_get($params = NULL) {
                 }
             }
         }
-    
+
         if (isset($params["group_by"])) {
             $query->groupBy($params["group_by"]);
         }
@@ -63,7 +68,7 @@ function std_get($params = NULL) {
         if (isset($params["dump"]) && $params["dump"] == true) {
             $query->dump();
         }
-    
+
         if (isset($params["distinct"]) && $params["distinct"] == true) {
             $query->distinct();
         }
@@ -85,17 +90,16 @@ function std_get($params = NULL) {
         }
         if (isset($params["first_row"]) && $params["first_row"] === true) {
             return (array) $query->first();
-        }
-        else{
+        } else {
             return json_decode($query->get()->toJSON(), true);
         }
-    }
-    else{
+    } else {
         return false;
     }
 }
+
 function std_get_raw($params = NULL) {
-    
+
     if ($params != NULL) {
         $query = DB::table($params["table_name"]);
         if (isset($params["select"])) {
@@ -122,14 +126,11 @@ function std_get_raw($params = NULL) {
                 if (isset($row["join_type"]) && isset($row["table_name"]) && isset($row["on1"]) && isset($row["operator"]) && isset($row["on2"])) {
                     if (strtolower($row["join_type"]) == "inner") {
                         $query->join($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
-                    }
-                    elseif (strtolower($row["join_type"]) == "left") {
+                    } elseif (strtolower($row["join_type"]) == "left") {
                         $query->leftJoin($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
-                    }
-                    elseif (strtolower($row["join_type"]) == "right") {
+                    } elseif (strtolower($row["join_type"]) == "right") {
                         $query->rightJoin($row["table_name"], $row["on1"], $row["operator"], $row["on2"]);
                     }
-                    
                 }
             }
         }
@@ -140,7 +141,7 @@ function std_get_raw($params = NULL) {
                 }
             }
         }
-    
+
         if (isset($params["group_by"])) {
             $query->groupBy($params["group_by"]);
         }
@@ -160,7 +161,7 @@ function std_get_raw($params = NULL) {
         if (isset($params["dump"]) && $params["dump"] == true) {
             $query->dump();
         }
-    
+
         if (isset($params["distinct"]) && $params["distinct"] == true) {
             $query->distinct();
         }
@@ -182,72 +183,60 @@ function std_get_raw($params = NULL) {
         }
         if (isset($params["first_row"]) && $params["first_row"] === true) {
             return (array) $query->first();
-        }
-        else{
+        } else {
             return $query->get();
         }
-    }
-    else{
+    } else {
         return false;
     }
 }
 
-function std_update($params = NULL)
-{
+function std_update($params = NULL) {
     return DB::table($params["table_name"])->where($params["where"])->update($params["data"]);
 }
 
-function std_insert($params = NULL)
-{
+function std_insert($params = NULL) {
     if ($params != NULL) {
         if ($params["table_name"] != NULL && $params["data"] != NULL) {
             return DB::table($params["table_name"])->insert($params["data"]);
-        }
-        else{
+        } else {
             return false;
         }
-    }
-    else{
+    } else {
         return false;
     }
 }
 
-function std_insert_get_id($params = NULL)
-{
+function std_insert_get_id($params = NULL) {
     if ($params != NULL) {
         if ($params["table_name"] != NULL && $params["data"] != NULL) {
             DB::table($params["table_name"])->insert($params["data"]);
             $id = DB::getPdo()->lastInsertId();
-            if($id) {
+            if ($id) {
                 return $id;
             } else {
                 return false;
             }
-        }
-        else{
+        } else {
             return false;
         }
-    }
-    else{
+    } else {
         return false;
     }
 }
 
-function std_delete($params = NULL)
-{
+function std_delete($params = NULL) {
     return DB::table($params["table_name"])->where($params["where"])->delete();
 }
 
-function std_truncate($params = NULL)
-{
+function std_truncate($params = NULL) {
     return DB::table($params["table_name"])->truncate();
 }
 
-function std_delete_special_where($params = NULL)
-{
+function std_delete_special_where($params = NULL) {
     return DB::table($params["table_name"])->where($params["where_field_name"], $params["where_operator"], $params["where_value"])->delete();
 }
-function std_upsert($params)
-{
+
+function std_upsert($params) {
     return DB::table($params["table_name"])->upsert($params["values"], $params["special_params"]);
 }

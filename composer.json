@@ -19,6 +19,8 @@
         "laravel/telescope": "^4.5",
         "laravel/tinker": "^2.0",
         "laravel/ui": "^3.0",
+        "phpoffice/phpspreadsheet": "^1.29",
+        "phpoffice/phpword": "^1.1",
         "rajurayhan/laravel-ews-mail-server": "dev-master",
         "simplesoftwareio/simple-qrcode": "~4"
     },

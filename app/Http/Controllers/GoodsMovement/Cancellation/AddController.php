@@ -317,6 +317,7 @@ class AddController extends Controller
             ],500);
         }
         $detail_insert_data = [];
+        if($request->selected_ids){
         foreach ($request->selected_ids as $detail_id) {
 
             //add for sap line ID because SAP not flexible
@@ -372,12 +373,14 @@ class AddController extends Controller
                 ]
             ]);
         }
+        }
         if ($detail_insert_data != NULL) {
             std_insert([
                 "table_name" => "TR_CANCELATION_MVT_DETAIL",
                 "data" => $detail_insert_data
             ]);
         }
+//        dd($detail_insert_data);
         
         if ($request->type == "GR") {
             std_update([
@@ -405,6 +408,7 @@ class AddController extends Controller
                     "TR_GI_SAPHEADER_IS_CANCELLED" => true
                 ]
             ]);
+            if($request->selected_ids){
             foreach ($request->selected_ids as $detail_id) {
                 std_update([
                     "table_name" => "TR_GI_SAPDETAIL",
@@ -413,6 +417,7 @@ class AddController extends Controller
                         "TR_GI_SAPDETAIL_IS_CANCELLED" => true
                     ]
                 ]);
+            }
             }
         }
         else if ($request->type == "TP") {
@@ -431,7 +436,7 @@ class AddController extends Controller
                         "TR_TP_DETAIL_IS_CANCELLED" => true
                     ]
                 ]);
-            }
+        }
         }
 
         generate_cancellation_csv($cancellation_id, session("plant"));

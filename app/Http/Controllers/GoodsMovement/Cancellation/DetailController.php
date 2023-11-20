@@ -9,7 +9,7 @@ class DetailController extends Controller
 {
     public function index(Request $request)
     {
-
+//dd($request);
         if ($request->doc_type == "GR") {
             $header = std_get([
                 "select" => ["*"],
@@ -77,9 +77,11 @@ class DetailController extends Controller
                         "value" => "{$request->doc_number_year}%"
                     ],
                 ],
-                "first_row" => true
+                "first_row" => true,
+//                "dump" => true
             ]);
 
+//                        dd(['stop',$header]);
             if (!$header) {
                 return redirect()->route('transaction_goods_movement_cancellation_add')
                     ->with([
@@ -188,7 +190,9 @@ class DetailController extends Controller
             ],
             "first_row" => true
         ]);
-
+//dd($cancellation_header_data);
+        $header = [];
+        $detail_data = [];
         if ($cancellation_header_data["TR_CANCELLATION_MVT_SAP_CODE"] == "102") {
             $cancellation_type = "GR";
             $header = std_get([
@@ -315,9 +319,9 @@ class DetailController extends Controller
                         [
                             "join_type" => "inner",
                             "table_name" => "TR_GR_DETAIL",
-                            "on1" => "TR_TP_DETAIL.TR_TP_DETAIL_GR_DETAIL_ID",
+                            "on1" => "TR_TP_DETAIL.TR_TP_DETAIL_Y21_GR_REF",
                             "operator" => "=",
-                            "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_GR_REFERENCE",
+                            "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_Y21_TP_REF",
                         ]
                     ],
                     "where" => [

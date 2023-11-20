@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use DB;
 
-function get_gr_data($material_code, $plant_code, $batch) {
+function get_gr_data($material_code, $plant_code, $batch = null) {
     $cons = [
         "select" => ["*"],
         "table_name" => "TR_GR_HEADER",
@@ -93,13 +93,19 @@ function get_gr_data($material_code, $plant_code, $batch) {
         ],
         "first_row" => false
     ];
-    if (!empty($batch)) {
-        $cons['where'][] = [
-            "field_name" => "TR_GR_DETAIL_SAP_BATCH",
-            "operator" => "=",
-            "value" => $batch
-        ];
-    }
+    /**
+     * Nov 2023
+     * waluyosejati@gmail.com
+     * 
+     * Filter ini diPending dulu
+     */
+//    if (!empty($batch)) {
+//        $cons['where'][] = [
+//            "field_name" => "TR_GR_DETAIL_SAP_BATCH",
+//            "operator" => "=",
+//            "value" => $batch
+//        ];
+//    }
     return std_get($cons);
 }
 
@@ -299,11 +305,17 @@ class AddController extends Controller {
                     ]
                 ]);
             }
-            std_insert([
-                "table_name" => "TR_GR_DETAIL_LOCK",
-                "data" => $insert_lock_data
-            ]);
-            $lock_data = get_lock_data($request->gi_po_number);
+/**
+ * 2023, Nov
+ * waluyosejati99@gmail.com
+ * 
+ * Disable automatic insert of gr lock, requested by IT user
+ */            
+//            std_insert([
+//                "table_name" => "TR_GR_DETAIL_LOCK",
+//                "data" => $insert_lock_data
+//            ]);
+//            $lock_data = get_lock_data($request->gi_po_number);
         }
 
         $movement_code = "351";
@@ -312,7 +324,7 @@ class AddController extends Controller {
         } elseif ($data["TR_PO_HEADER_TYPE"] == "ZRET") {
             $movement_code = "161";
         }
-        
+
         return view('transaction/purchase_order/good_issue/add', [
             "header_data" => $data,
             "detail_data" => $detail_data,
@@ -378,7 +390,7 @@ class AddController extends Controller {
             $select2 = array_merge($select2, [
                 [
                     "id" => $row["TR_GR_DETAIL_ID"],
-                    "text" => $row["TR_GR_DETAIL_ID"] . " - " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"]
+                    "text" => $row["TR_GR_DETAIL_ID"] . " - " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $row["TR_GR_DETAIL_SAP_BATCH"] . " | " . $row["TR_GR_DETAIL_EXP_DATE"]
                 ]
             ]);
         }
@@ -507,10 +519,10 @@ class AddController extends Controller {
 
         $attributeNames = [
             "po_number" => "PO Number",
-                 "TR_GI_HEADER_PSTG_DATE" => "Posting Date",
-                // "TR_GI_HEADER_BOL" => "Bill Of Landing",
-                // "TR_GI_HEADER_RECIPIENT" => "Recipient",
-                 "TR_GI_HEADER_TXT" => "Note"
+            "TR_GI_HEADER_PSTG_DATE" => "Posting Date",
+            // "TR_GI_HEADER_BOL" => "Bill Of Landing",
+            // "TR_GI_HEADER_RECIPIENT" => "Recipient",
+            "TR_GI_HEADER_TXT" => "Note"
         ];
 
         $validate->setAttributeNames($attributeNames);
@@ -694,16 +706,21 @@ class AddController extends Controller {
                     break;
                 }
             }
-
             if ($check_qty != 0) {
                 return response()->json([
-                            'message' => $material_code . " " . $material_name . " must be a full GI"
+                            'message' => $material_code . " " . $material_name . " Qty harus full GI"
                                 ], 500);
+//                            'message' => $material_code . " " . $material_name . " Qty GI harus sama dengan Qty PO"
             }
+//            else{
+//                return response()->json([
+//                            'message' => $material_code . " " . $material_name . " Qty harus full GI"
+//                                ], 500);
+//            }
             $gi_materials = array_values($gi_materials);
         }
 
-        $movement_code = "351";//ZRAW
+        $movement_code = "351"; //ZRAW
         if ($po_header["TR_PO_HEADER_TYPE"] == "ZSTO") {
             $movement_code = "351";
         } elseif ($po_header["TR_PO_HEADER_TYPE"] == "ZRET") {

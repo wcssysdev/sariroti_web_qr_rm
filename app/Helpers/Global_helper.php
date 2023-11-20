@@ -981,9 +981,9 @@ function generate_cancellation_csv($cancellation_id, $plant_code) {
                 [
                     "join_type" => "inner",
                     "table_name" => "TR_GR_DETAIL",
-                    "on1" => "TR_TP_DETAIL.TR_TP_DETAIL_GR_DETAIL_ID",
+                    "on1" => "TR_TP_DETAIL.TR_TP_DETAIL_Y21_GR_REF",
                     "operator" => "=",
-                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
+                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_Y21_TP_REF",
                 ]
             ],
             "where" => [
@@ -995,7 +995,7 @@ function generate_cancellation_csv($cancellation_id, $plant_code) {
             ]
         ]);
     }
-
+//dd($detail_data);
     $fp = fopen(storage_path('app/public/INCOMING2/MIGO/' . "MIGO_IN_" . $plant_code . "_CANCEL_" . str_pad($cancellation_id, 7, "0", STR_PAD_LEFT) . date("YmdHis") . ".csv"), 'w');
 
     fputcsv($fp, [

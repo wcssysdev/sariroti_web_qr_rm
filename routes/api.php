@@ -88,6 +88,7 @@ Route::group(['middleware' => 'check_user_token'], function () {
     Route::get('master/goods/po_gr', 'Api\Master\GoodsController@get_list_po_gr');
     Route::get('master/goods/po_gi', 'Api\Master\GoodsController@get_list_po_gi');
     
+    Route::get('transaction/purchase_order/good_issue/scan_qr_code', 'Api\Transaction\PurchaseOrder\GoodIssueController@scan_qr_non_plan');
     /**
      * 2023 Nov
      * 

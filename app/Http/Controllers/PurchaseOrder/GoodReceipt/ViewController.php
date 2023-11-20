@@ -124,10 +124,12 @@ class ViewController extends Controller
                     "type" => "ASC",
                 ]
             ],
+//            "dump" => false,
             "where" => $conditions,
             "distinct" => true
         ]);
-
+//dd($po_gr_data);
+//        echo $this->db->last_query();
         return view('transaction/purchase_order/good_receipt/view', [
             "data" => $po_gr_data,
             "plant" => $plant_data,

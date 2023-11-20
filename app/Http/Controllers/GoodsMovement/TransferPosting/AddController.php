@@ -894,6 +894,17 @@ class AddController extends Controller {
 
                 $count++;
 
+                $exp_date_y21 = $row["TR_TP_Y21_DETAIL_TEMP_EXP_DATE"];
+                if($row['TR_TP_Y21_DETAIL_TEMP_EXP_DATE']){
+                    $exploded_exp_date = explode("-", $row['TR_TP_Y21_DETAIL_TEMP_EXP_DATE']);
+                    if(count($exploded_exp_date) == 3){
+                        if(strlen($exploded_exp_date[0]) == 2){
+                            $exp_date_y21 = convert_to_y_m_d($row["TR_TP_Y21_DETAIL_TEMP_EXP_DATE"]);
+                        }
+                    }else{
+                        $exp_date_y21 = convert_to_y_m_d($row["TR_TP_Y21_DETAIL_TEMP_EXP_DATE"]);
+                    }
+                }
                 $gr_detail_id = std_insert_get_id([
                     "table_name" => "TR_GR_DETAIL",
                     "data" => [
@@ -909,7 +920,7 @@ class AddController extends Controller {
                         "TR_GR_DETAIL_UNLOADING_PLANT" => session("plant"),
                         "TR_GR_DETAIL_GL_ACCOUNT" => NULL,
                         "TR_GR_DETAIL_COST_CENTER" => NULL,
-                        "TR_GR_DETAIL_EXP_DATE" => convert_to_y_m_d($row["TR_TP_Y21_DETAIL_TEMP_EXP_DATE"]),
+                        "TR_GR_DETAIL_EXP_DATE" => $exp_date_y21,
                         "TR_GR_DETAIL_IMG_QRCODE" => NULL,
                         "TR_GR_DETAIL_NOTES" => $row["TR_TP_Y21_DETAIL_TEMP_NOTES"],
                         "TR_GR_DETAIL_PHOTO" => NULL,
