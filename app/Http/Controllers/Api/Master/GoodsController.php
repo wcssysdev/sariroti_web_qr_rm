@@ -79,6 +79,18 @@ class GoodsController extends Controller {
         $data = std_get([
             "select" => ["MA_MVT_CODE", "MA_MVT_DESC"],
             "table_name" => "MA_MVT",
+            "where" => [
+                [
+                    "field_name" => "MA_MVT_CODE",
+                    "operator" => "=",
+                    "value" => '311',
+                ],
+//                [
+//                    "field_name" => "MA_MVT_CODE",
+//                    "operator" => "=",
+//                    "value" => '411',
+//                ]
+            ],            
             "order_by" => [
                 [
                     "field" => "MA_MVT_ID",
