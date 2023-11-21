@@ -214,14 +214,19 @@ class GoodsController extends Controller {
                 "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
                 "operator" => ">=",
                 "value" => $startdate
-            ]
-        ]);
-        $conditions = array_merge($conditions, [
+            ],
             [
                 "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
                 "operator" => "<=",
                 "value" => $enddate
-            ]
+            ],
+            [
+                "field_name" => "TR_PO_HEADER_IS_DELETED",
+                "operator" => "=",
+                "value" => false
+            ],
+        ]);
+        $conditions = array_merge($conditions, [
         ]);
 
         if (isset($request->plant_code) && $request->plant_code != "") {
@@ -303,7 +308,17 @@ class GoodsController extends Controller {
                 "field_name" => "TR_PO_HEADER_IS_DELETED",
                 "operator" => "=",
                 "value" => false
-            ]
+            ],
+            [
+                "field_name" => "TR_GR_HEADER_IS_ADJUSTMENT",
+                "operator" => "=",
+                "value" => false
+            ],
+            [
+                "field_name" => "TR_GR_HEADER_IS_CANCELLED",
+                "operator" => "!=",
+                "value" => true
+            ]            
         ];
 
         $conds = array_merge($conds, [
@@ -311,15 +326,17 @@ class GoodsController extends Controller {
                 "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
                 "operator" => ">=",
                 "value" => $startdate
-            ]
-        ]);
-
-        $conds = array_merge($conds, [
+            ],
             [
                 "field_name" => "TR_PO_HEADER_SAP_CREATED_DATE",
                 "operator" => "<=",
                 "value" => $enddate
-            ]
+            ],
+            [
+                "field_name" => "TR_PO_HEADER_IS_DELETED",
+                "operator" => "=",
+                "value" => false
+            ]        
         ]);
 
         if (isset($request->plant_code) && $request->plant_code != "") {
@@ -360,10 +377,33 @@ class GoodsController extends Controller {
             "join" => [
                 [
                     "join_type" => "inner",
+                    "table_name" => "TR_GR_HEADER",
+                    "on1" => "TR_GR_HEADER.TR_GR_HEADER_PO_NUMBER",
+                    "operator" => "=",
+                    "on2" => "TR_PO_HEADER.TR_PO_HEADER_NUMBER",
+                ],
+                [
+                    "join_type" => "inner",
                     "table_name" => "TR_PO_DETAIL",
                     "on1" => "TR_PO_HEADER.TR_PO_HEADER_NUMBER",
                     "operator" => "=",
                     "on2" => "TR_PO_DETAIL.TR_PO_DETAIL_PO_HEADER_NUMBER",
+                ],
+                [
+                    "join_type" => "multi_clause",
+                    "table_name" => "TR_GR_DETAIL",
+                    "clauses" => [
+                        [
+                            "on1" => "TR_GR_HEADER.TR_GR_HEADER_ID",
+                            "operator" => "=",
+                            "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
+                        ],
+                        [
+                            "on1" => "TR_PO_DETAIL.TR_PO_DETAIL_ID",
+                            "operator" => "=",
+                            "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_PO_DETAIL_ID"
+                        ]
+                    ],
                 ],
                 [
                     "join_type" => "LEFT",
@@ -371,7 +411,7 @@ class GoodsController extends Controller {
                     "on1" => "MA_VENDOR.MA_VENDOR_CODE",
                     "operator" => "=",
                     "on2" => "TR_PO_HEADER.TR_PO_HEADER_VENDOR",
-                ],
+                ],                
             ],
             "where" => $conds,
             "distinct" => true
@@ -839,9 +879,9 @@ class GoodsController extends Controller {
         ];
         if (isset($request->material_code) && $request->material_code != "") {
             $clause['where'][] = [
-                        "field_name" => "TR_GR_DETAIL_MATERIAL_CODE",
-                        "operator" => "=",
-                        "value" => $request->material_code
+                "field_name" => "TR_GR_DETAIL_MATERIAL_CODE",
+                "operator" => "=",
+                "value" => $request->material_code
             ];
         }
         if (isset($request->movement_type) && $request->movement_type != "") {

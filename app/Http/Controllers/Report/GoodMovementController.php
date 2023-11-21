@@ -12,6 +12,13 @@ class GoodMovementController extends Controller {
 
     public function index(Request $request) {
         $data = [];
+        
+        if(empty($request->start_date)){
+            $request->start_date = "01".date("/m/Y");
+        }
+        if(empty($request->end_date)){
+            $request->end_date = date("d/m/Y") ;
+        }
         if ($request->plant_code != NULL && $request->start_date && $request->end_date) {
             if (session("user_role") != 6) {
                 if ($request->plant_code != session("plant")) {
@@ -322,7 +329,7 @@ class GoodMovementController extends Controller {
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ];
 
-        return response()->download($file_name_url, $file_name, $headers);
+        return response()->download($file_name_url, $file_name, $headers)->deleteFileAfterSend(true);
 //        return response()->file($file_name);
 
         return view('report/good_movement', [
@@ -634,7 +641,7 @@ class GoodMovementController extends Controller {
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ];
 
-        return response()->download($file_name_url, $file_name, $headers);
+        return response()->download($file_name_url, $file_name, $headers)->deleteFileAfterSend(true);
         
 //        return response()->file($file_name);
 

@@ -406,7 +406,7 @@ class GoodIssueController extends Controller {
         return true;
     }
 
-    public function submit(Request $request) {
+    public function submit_gi(Request $req_post) {
         /**
          * 2023 Nov
          * waluyosejati99@gmail.com
@@ -416,15 +416,18 @@ class GoodIssueController extends Controller {
          * 
          * PO Left Qty harus langsung dipotong
          */
-        $validation_res = $this->save_validate_input($request);
+        
+        $validation_res = $this->save_validate_input($req_post);
         if ($validation_res !== true) {
             return response()->json([
                         'message' => $validation_res
                             ], 400);
         }
 
+        $request = (object) $req_post->all();
+//        dd($request);
         $timestamp = date("Y-m-d H:i:s");
-        if ($request->gi_materials == NULL) {
+        if ($request->TR_GI_MATERIALS == NULL) {
             return response()->json([
                         'message' => "GI Material Data Not Exist / Empty"
                             ], 500);
@@ -452,12 +455,65 @@ class GoodIssueController extends Controller {
         /**
          * Insert GI Header
          */
+        $plant_code = $request->user_data->plant;
+        $movement_code = "351"; //ZRAW
+        if ($request->TR_PO_HEADER_TYPE == "ZSTO") {
+            $movement_code = "351";
+        } elseif ($request->TR_PO_HEADER_TYPE == "ZRET") {
+            $movement_code = "101";
+        }
+        $filename_header = null;
+        if (isset($request->GI_PHOTO) && $request->GI_PHOTO != NULL && $request->GI_PHOTO != "") {
+            $upload_dir = public_path() . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "GI_images" . DIRECTORY_SEPARATOR;
+            $img = $request->GI_PHOTO;
+            $img = str_replace('data:image/jpeg;base64,', '', $img);
+            $img = str_replace(' ', '+', $img);
+            $image_data = base64_decode($img);
+//            dd($upload_dir);
+            $unique_id = uniqid();
+            $file = $upload_dir . $unique_id . '.jpeg';
+            $success = file_put_contents($file, $image_data);
+            $filename_header = $unique_id . '.jpeg';
+        }
+        $new_gi = [
+            "table_name" => "TR_GI_SAPHEADER",
+            "data" => [
+                "TR_GI_SAPHEADER_PO_NUMBER" => $request->TR_PO_HEADER_NUMBER,
+                "TR_GI_SAPHEADER_PLANT_CODE" => $plant_code,
+                "TR_GI_SAPHEADER_CREATED_PLANT_CODE" => $plant_code,
+                "TR_GI_SAPHEADER_SAP_DOC" => NULL,
+                "TR_GI_SAPHEADER_PSTG_DATE" => $request->TR_GI_SAPHEADER_PSTG_DATE,
+                "TR_GI_SAPHEADER_DOC_DATE" => date("Y-m-d"),
+                "TR_GI_SAPHEADER_BOL" => $request->TR_GI_SAPHEADER_BOL,
+                "TR_GI_SAPHEADER_TXT" => $request->TR_GI_SAPHEADER_TXT,
+                "TR_GI_SAPHEADER_MVT_CODE" => $movement_code,
+                "TR_GI_SAPHEADER_SAP_YEAR" => NULL,
+                "TR_GI_SAPHEADER_STATUS" => "PENDING",
+                "TR_GI_SAPHEADER_ERROR" => NULL,
+                "TR_GI_SAPHEADER_PHOTO" => $filename_header,
+                "TR_GI_SAPHEADER_MOBILE_IS_SUBMIT" => true,
+                "TR_GI_SAPHEADER_CREATED_BY" => $request->user_data->user_id,
+                "TR_GI_SAPHEADER_CREATED_TIMESTAMP" => $timestamp
+            ]
+        ];
+        
+        $gi_id = std_insert_get_id($new_gi);
+
+        if ($gi_id == false) {
+            return response()->json([
+                        'message' => "Error on saving GI header"
+                            ], 500);
+        }
+
         $gi_material_arr = [];
-        foreach ($request->gi_materials as $row) {
+        $count_sap_line_id = 1;
+
+        foreach ($request->TR_GI_MATERIALS as $row) {
+
 
             $filename = null;
             if (isset($row["materialPhoto"]) && $row["materialPhoto"] != NULL && $row["materialPhoto"] != "") {
-                $upload_dir = public_path() . "/storage/GI_images/";
+                $upload_dir = public_path() . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "GI_images" . DIRECTORY_SEPARATOR;
                 $img = $row["materialPhoto"];
                 $img = str_replace('data:image/jpeg;base64,', '', $img);
                 $img = str_replace(' ', '+', $img);
@@ -468,105 +524,79 @@ class GoodIssueController extends Controller {
                 $filename = $unique_id . '.jpeg';
             }
 
-            $gi_detail = std_get([
-                "select" => ["*"],
-                "table_name" => "TR_GI_SAPDETAIL",
-                "where" => [
-                    [
-                        "field_name" => "TR_GI_SAPDETAIL_ID",
-                        "operator" => "=",
-                        "value" => $row["TR_GI_SAPDETAIL_ID"]
-                    ]
-                ],
-                "first_row" => true
-            ]);
-            if ($row["TR_GI_SAPDETAIL_MOBILE_QTY"] > $gi_detail["TR_GI_SAPDETAIL_GI_QTY"]) {
-                return response()->json([
-                            "status" => "ERR",
-                            "data" => "Mobile QTY must be < than GI Detail"
-                                ], 500);
-            }
-        }
 
-        foreach ($request->gi_materials as $row) {
-            std_update([
-                "table_name" => "TR_GI_SAPDETAIL",
-                "where" => ["TR_GI_SAPDETAIL_ID" => $row["TR_GI_SAPDETAIL_ID"]],
-                "data" => [
-                    "TR_GI_SAPDETAIL_PHOTO" => $filename,
+            $gi_material_arr = array_merge($gi_material_arr, [
+                [
+                    "TR_GI_SAPDETAIL_SAPHEADER_ID" => $gi_id,
+                    "TR_GI_SAPDETAIL_MATERIAL_CODE" => $row["TR_GR_DETAIL_MATERIAL_CODE"],
+                    "TR_GI_SAPDETAIL_MATERIAL_NAME" => $row["TR_GR_DETAIL_MATERIAL_NAME"],
+                    "TR_GI_SAPDETAIL_SAP_BATCH" => $row["TR_GR_DETAIL_SAP_BATCH"],
+                    "TR_GI_SAPDETAIL_GI_QTY" => $row["TR_GI_SAPDETAIL_MOBILE_QTY"],
+                    "TR_GI_SAPDETAIL_GI_UOM" => $row["TR_GI_SAPDETAIL_MOBILE_UOM"],
                     "TR_GI_SAPDETAIL_MOBILE_QTY" => $row["TR_GI_SAPDETAIL_MOBILE_QTY"],
                     "TR_GI_SAPDETAIL_MOBILE_UOM" => $row["TR_GI_SAPDETAIL_MOBILE_UOM"],
+                    "TR_GI_SAPDETAIL_BASE_QTY" => $row["TR_GR_DETAIL_BASE_QTY"],
+                    "TR_GI_SAPDETAIL_BASE_UOM" => $row["TR_GR_DETAIL_BASE_UOM"],
+                    "TR_GI_SAPDETAIL_SLOC" => $row["TR_GR_DETAIL_SLOC"],
+                    "TR_GI_SAPDETAIL_QR_CODE_NUMBER" => $row["TR_GR_DETAIL_QR_CODE_NUMBER"],
                     "TR_GI_SAPDETAIL_NOTES" => $row["TR_GI_SAPDETAIL_NOTES"],
-                    "TR_GI_SAPDETAIL_UPDATED_BY" => $request->user_data->user_id,
-                    "TR_GI_SAPDETAIL_UPDATED_TIMESTAMP" => $timestamp
+                    "TR_GI_SAPDETAIL_PHOTO" => NULL,
+                    "TR_GI_SAPDETAIL_CREATED_BY" => $request->user_data->user_id,
+                    "TR_GI_SAPDETAIL_CREATED_TIMESTAMP" => $timestamp,
+                    "TR_GI_SAPDETAIL_UPDATED_BY" => NULL,
+                    "TR_GI_SAPDETAIL_UPDATED_TIMESTAMP" => NULL,
+                    "TR_GI_SAPDETAIL_GR_DETAIL_ID" => $row["TR_GR_DETAIL_ID"],
+                    "TR_GI_SAPDETAIL_PO_DETAIL_ID" => $row["TR_GR_DETAIL_PO_DETAIL_ID"],
+//                    "TR_GI_SAPDETAIL_SAPLINE_ID" => $row["TR_PO_DETAIL_MATERIAL_LINE_NUM"],
+                    "TR_GI_SAPDETAIL_SAPLINE_ID" => $count_sap_line_id
                 ]
             ]);
+            $count_sap_line_id = $count_sap_line_id + 2;
         }
 
-        $filename_header = null;
-        if (isset($request->GI_PHOTO) && $request->GI_PHOTO != NULL && $request->GI_PHOTO != "") {
-            $upload_dir = public_path() . "/storage/GI_images/";
-            $img = $request->GI_PHOTO;
-            $img = str_replace('data:image/jpeg;base64,', '', $img);
-            $img = str_replace(' ', '+', $img);
-            $image_data = base64_decode($img);
-            $unique_id = uniqid();
-            $file = $upload_dir . $unique_id . '.jpeg';
-            $success = file_put_contents($file, $image_data);
-            $filename_header = $unique_id . '.jpeg';
-        }
-
-        std_update([
-            "table_name" => "TR_GI_SAPHEADER",
-            "where" => ["TR_GI_SAPHEADER_ID" => $request->TR_GI_SAPHEADER_ID],
-            "data" => [
-                "TR_GI_SAPHEADER_PHOTO" => $filename_header,
-                "TR_GI_SAPHEADER_BOL" => $request->TR_GI_SAPHEADER_BOL,
-                "TR_GI_SAPHEADER_TXT" => $request->TR_GI_SAPHEADER_TXT,
-                "TR_GI_SAPHEADER_PSTG_DATE" => $request->TR_GI_SAPHEADER_PSTG_DATE,
-                "TR_GI_SAPHEADER_MOBILE_IS_SUBMIT" => true,
-                "TR_GI_SAPHEADER_UPDATED_BY" => $request->user_data->user_id,
-                "TR_GI_SAPHEADER_UPDATED_TIMESTAMP" => $timestamp
-            ]
+        $insert_res = std_insert([
+            "table_name" => "TR_GI_SAPDETAIL",
+            "data" => $gi_material_arr
         ]);
 
-        foreach ($request->gi_materials as $row) {
+//        dd('ok save');
+//
             $gi_detail = std_get([
                 "select" => ["*"],
                 "table_name" => "TR_GI_SAPDETAIL",
                 "where" => [
                     [
-                        "field_name" => "TR_GI_SAPDETAIL_ID",
+                        "field_name" => "TR_GI_SAPDETAIL_SAPHEADER_ID",
                         "operator" => "=",
-                        "value" => $row["TR_GI_SAPDETAIL_ID"]
+                        "value" => $gi_id
                     ]
                 ],
-                "first_row" => true
             ]);
-            // if ($row["TR_GI_SAPDETAIL_MOBILE_QTY"] < $gi_detail["TR_GI_SAPDETAIL_GI_QTY"]) {
-            // $difference = $tp_detail["TR_GI_SAPDETAIL_GI_QTY"] - $row["TR_GI_SAPDETAIL_MOBILE_QTY"];
+//            dd($gi_detail);
+        foreach ($gi_detail as $row) {
             std_update([
                 "table_name" => "TR_GR_DETAIL",
-                "where" => ["TR_GR_DETAIL_ID" => $gi_detail["TR_GI_SAPDETAIL_GR_DETAIL_ID"]],
+                "where" => ["TR_GR_DETAIL_ID" => $row["TR_GI_SAPDETAIL_GR_DETAIL_ID"]],
                 "data" => [
-                    "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GI_SAPDETAIL_MOBILE_QTY"])
+                    "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GI_SAPDETAIL_MOBILE_QTY"]),
+                    "TR_GR_DETAIL_UPDATED_BY" => $request->user_data->user_id,
+                    "TR_GR_DETAIL_UPDATED_TIMESTAMP" => $timestamp,                    
                 ]
             ]);
-            // }
 
             insert_material_log([
-                "material_code" => $gi_detail["TR_GI_SAPDETAIL_MATERIAL_CODE"],
+                "material_code" => $row["TR_GI_SAPDETAIL_MATERIAL_CODE"],
                 "plant_code" => $request->user_data->plant,
                 "posting_date" => $request->TR_GI_SAPHEADER_PSTG_DATE,
-                "movement_type" => $gi_header["TR_GI_SAPHEADER_MVT_CODE"],
-                "gr_detail_id" => $gi_detail["TR_GI_SAPDETAIL_GR_DETAIL_ID"],
+                "movement_type" => $movement_code,
+                "gr_detail_id" => $row["TR_GI_SAPDETAIL_GR_DETAIL_ID"],
                 "base_qty" => -$row["TR_GI_SAPDETAIL_MOBILE_QTY"],
-                "base_uom" => $gi_detail["TR_GI_SAPDETAIL_BASE_UOM"],
+                "base_uom" => $row["TR_GI_SAPDETAIL_BASE_UOM"],
                 "created_by" => $request->user_data->user_id
             ]);
         }
 
-        generate_gi_csv($request->TR_GI_SAPHEADER_ID, $request->user_data->plant);
+        generate_gi_csv($gi_id, $request->user_data->plant);
 
         return response()->json([
                     "status" => "OK",
@@ -574,7 +604,7 @@ class GoodIssueController extends Controller {
                         ], 200);
     }
 
-    public function submit_nov_2023(Request $request) {
+    public function submit(Request $request) {
         $validation_res = $this->save_validate_input($request);
         if ($validation_res !== true) {
             return response()->json([
@@ -736,6 +766,59 @@ class GoodIssueController extends Controller {
                         ], 200);
     }
 
+    public function history_header_created_by(Request $request) {
+        $plant_code = $request->user_data->plant;
+        $conditions = [
+            [
+                "field_name" => "TR_GI_SAPHEADER_CREATED_BY",
+                "operator" => "=",
+                "value" => $request->user_data->user_id
+            ],
+            [
+                "field_name" => "TR_GI_SAPHEADER_MOBILE_IS_SUBMIT",
+                "operator" => "=",
+                "value" => true
+            ]
+        ];
+
+        if (!isset($request->start_date) || $request->start_date == "") {
+            $request->start_date = date("Y-m-") . "01";
+        }
+        if (isset($request->start_date) && $request->start_date != "") {
+            $conditions = array_merge($conditions, [
+                [
+                    "field_name" => "TR_GI_SAPHEADER_CREATED_TIMESTAMP",
+                    "operator" => ">=",
+                    "value" => $request->start_date . " 00:00:00"
+                ]
+            ]);
+        }
+
+        if (!isset($request->end_date) || $request->end_date == "") {
+            $request->end_date = date("Y-m-d");
+        }
+        if (isset($request->end_date) && $request->end_date != "") {
+            $conditions = array_merge($conditions, [
+                [
+                    "field_name" => "TR_GI_SAPHEADER_CREATED_TIMESTAMP",
+                    "operator" => "<=",
+                    "value" => $request->end_date . " 23:59:59"
+                ]
+            ]);
+        }
+
+        $header_data = std_get([
+            "select" => "TR_GI_SAPHEADER.*",
+            "table_name" => "TR_GI_SAPHEADER",
+            "where" => $conditions,
+            "distinct" => true
+        ]);
+
+        return response()->json([
+                    "status" => "OK",
+                    "data" => $header_data
+                        ], 200);
+    }
     public function history_header(Request $request) {
         $plant_code = $request->user_data->plant;
         $conditions = [

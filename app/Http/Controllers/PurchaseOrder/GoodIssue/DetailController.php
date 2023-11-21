@@ -64,7 +64,7 @@ class DetailController extends Controller
                 ]
             ]
         ]);
-        
+
 
         return view('transaction/purchase_order/good_issue/detail', [
             "header_data" => $data,

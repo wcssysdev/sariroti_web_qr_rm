@@ -83,6 +83,8 @@ Route::group(['middleware' => 'check_user_session:1,2,3,4,5,6'], function () {
 
     //Laporan
     Route::get('/report/stock', 'Report\StockController@index')->name('stock_report_view');
+    Route::get('/report/stock/excel', 'Report\StockController@excel')->name('stock_report_excel');
+    Route::get('/report/stock/detail', 'Report\StockController@detail')->name('stock_detail_report_view');
     Route::get('/report/good_movement', 'Report\GoodMovementController@index')->name('good_movement_report_view');
     Route::get('/report/good_movement/excel', 'Report\GoodMovementController@excel')->name('goods_mvt_excel');
     Route::get('/report/good_movement/detail', 'Report\GoodMovementController@detail')->name('goods_mvt_detail');
