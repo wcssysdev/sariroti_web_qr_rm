@@ -44,7 +44,7 @@
                         </div>
                         
                         <div class="col-lg-3" id="posting_date_input">
-                            <label>Posting Date:</label>
+                            <label>Posting Date:<span style="color:red">*</span></label>
                             <input type="text" class="form-control date" value="{{ $header_posting_date }}" placeholder="Input Posting Date" name="TR_TP_HEADER_PSTG_DATE">
                         </div>
 

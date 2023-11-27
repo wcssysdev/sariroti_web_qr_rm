@@ -13,7 +13,7 @@ class StockController extends Controller {
     public function get_opening_balance($plant_code, $start_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
             "select" => [
-                "LG_MATERIAL_CODE",
+                "LG_MATERIAL_CODE","TR_GR_DETAIL_MATERIAL_NAME",
                 "LG_MATERIAL_UOM", "TR_GR_DETAIL_SLOC",
                 DB::raw('SUM("LG_MATERIAL_QTY") as ACTUAL_QTY')
             ],
@@ -49,7 +49,7 @@ class StockController extends Controller {
                     "type" => "ASC",
                 ],
             ],
-            "group_by" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM"]
+            "group_by" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE","TR_GR_DETAIL_MATERIAL_NAME", "LG_MATERIAL_UOM"]
         ];
         if ($is_detail) {
             $statement['select'][] = "TR_GR_DETAIL_MATERIAL_NAME";
@@ -203,17 +203,18 @@ class StockController extends Controller {
 
     public function get_gr_detail($plant_code, $start_date, $sloc_code = "", $mat_code = "") {
         $statement = [
+//            "select" => ["*"],
             "select" => ["TR_GR_DETAIL_MATERIAL_CODE", "TR_GR_DETAIL_MATERIAL_NAME", "TR_GR_DETAIL_SAP_BATCH", "TR_GR_DETAIL_LEFT_QTY", "TR_GR_DETAIL_BASE_UOM", "TR_GR_DETAIL_EXP_DATE"],
             "table_name" => "TR_GR_DETAIL",
-            // "join" => [
-            //     [
-            //         "join_type" => "inner",
-            //         "table_name" => "MA_MATL",
-            //         "on1" => "MA_MATL.MA_MATL_CODE",
-            //         "operator" => "=",
-            //         "on2" => "LG_MATERIAL.LG_MATERIAL_CODE",
-            //     ]
-            // ],
+            "join" => [
+                [
+                    "join_type" => "inner",
+                    "table_name" => "TR_GR_HEADER",
+                    "on1" => "TR_GR_HEADER.TR_GR_HEADER_ID",
+                    "operator" => "=",
+                    "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
+                ]
+            ],
             "where" => [
                 [
                     "field_name" => "TR_GR_DETAIL_UNLOADING_PLANT",
@@ -224,7 +225,22 @@ class StockController extends Controller {
                     "field_name" => "TR_GR_DETAIL_LEFT_QTY",
                     "operator" => ">",
                     "value" => 0
-                ]
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_IS_ADJUSTMENT",
+                    "operator" => "=",
+                    "value" => false
+                ],
+                [
+                    "field_name" => "TR_GR_HEADER_PSTG_DATE",
+                    "operator" => "=",
+                    "value" => $start_date
+                ],
+                [
+                    "field_name" => "TR_GR_DETAIL_IS_CANCELLED",
+                    "operator" => "=",
+                    "value" => false
+                ],
             ],
             "order_by" => [
                 [
@@ -310,6 +326,7 @@ class StockController extends Controller {
                 if ($key !== false) {
                     $open_balance[$key]["receipt_qty"] = $receipt_balance[$i]["qty"];
                 } else {
+//                    dd($receipt_balance);
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $receipt_balance[$i]["LG_MATERIAL_CODE"],
                         "TR_GR_DETAIL_MATERIAL_NAME" => $receipt_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
@@ -352,6 +369,7 @@ class StockController extends Controller {
                         $open_balance[$i]["gr_detail"][] = $gr_detail[$j];
                     }
                 }
+//                die();
             }
         } else {
             $request->date = date("d-m-Y");
@@ -576,7 +594,7 @@ class StockController extends Controller {
         } else {
             $request->date = date("d-m-Y");
         }
-
+//        dd($open_balance);
         return view('report/stock_detail', [
             "open_balance" => $open_balance,
             "date" => $request->date,

@@ -441,6 +441,14 @@ class GoodMovementController extends Controller {
                         "field" => "LG_MATERIAL_CODE",
                         "type" => "ASC",
                     ],
+                    [
+                        "field" => "TR_GR_DETAIL_SAP_BATCH",
+                        "type" => "ASC",
+                    ],
+                    [
+                        "field" => "LG_MATERIAL_CREATED_TIMESTAMP",
+                        "type" => "ASC",
+                    ],
                 ],
             ]);
         }
@@ -592,6 +600,14 @@ class GoodMovementController extends Controller {
                         "field" => "LG_MATERIAL_CODE",
                         "type" => "ASC",
                     ],
+                    [
+                        "field" => "TR_GR_DETAIL_SAP_BATCH",
+                        "type" => "ASC",
+                    ],
+                    [
+                        "field" => "LG_MATERIAL_CREATED_TIMESTAMP",
+                        "type" => "ASC",
+                    ],                    
                 ],
             ]);
         }

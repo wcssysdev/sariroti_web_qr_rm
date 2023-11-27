@@ -625,7 +625,7 @@ class AddController extends Controller {
 
         $timestamp = date("Y-m-d H:i:s");
 
-        if ($request->TR_TP_HEADER_MVT_CODE == "551" || $request->TR_TP_HEADER_MVT_CODE == "Y21") {
+        if (in_array($request->TR_TP_HEADER_MVT_CODE,["551","Y21","311","411"])) {
             if ($request->TR_TP_HEADER_PSTG_DATE == NULL || $request->TR_TP_HEADER_PSTG_DATE == "") {
                 return response()->json([
                             'message' => "Posting Date is Required"

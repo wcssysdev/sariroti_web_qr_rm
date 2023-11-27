@@ -305,12 +305,12 @@ class AddController extends Controller {
                     ]
                 ]);
             }
-/**
- * 2023, Nov
- * waluyosejati99@gmail.com
- * 
- * Disable automatic insert of gr lock, requested by IT user
- */            
+            /**
+             * 2023, Nov
+             * waluyosejati99@gmail.com
+             * 
+             * Disable automatic insert of gr lock, requested by IT user
+             */
 //            std_insert([
 //                "table_name" => "TR_GR_DETAIL_LOCK",
 //                "data" => $insert_lock_data
@@ -494,7 +494,9 @@ class AddController extends Controller {
 
         return redirect()->route("purchase_order_good_issue_add", [
                     'gi_po_number' => $request->po_number,
-                    'header_posting_date' => $request->TR_GI_HEADER_PSTG_DATE
+                    'header_posting_date' => $request->TR_GI_HEADER_PSTG_DATE,
+                    'header_bill_of_landing' => $request->TR_GI_HEADER_BOL,
+                    'header_note' => $request->header_note,
         ]);
     }
 
@@ -706,6 +708,7 @@ class AddController extends Controller {
                     break;
                 }
             }
+//            dd($check_qty);
             if ($check_qty != 0) {
                 return response()->json([
                             'message' => $material_code . " " . $material_name . " Qty harus full GI"
@@ -805,17 +808,24 @@ class AddController extends Controller {
             "data" => $gi_material_arr
         ]);
 
-        // foreach ($gi_materials as $row) {
-        //     std_update([
-        //         "table_name" => "TR_GR_DETAIL",
-        //         "where" => ["TR_GR_DETAIL_ID" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]],
-        //         "data" => [
-        //             "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - '.$row["TR_GR_DETAIL_LOCK_BOOKED_QTY"])
-        //         ]
-        //     ]);
-        // }
-
         foreach ($global_gi_materials as $row) {
+            std_update([
+                "table_name" => "TR_GR_DETAIL",
+                "where" => ["TR_GR_DETAIL_ID" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]],
+                "data" => [
+                    "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"])
+                ]
+            ]);
+            insert_material_log([
+                "material_code" => $row["TR_GR_DETAIL_MATERIAL_CODE"],
+                "plant_code" => session("plant"),
+                "posting_date" => convert_to_y_m_d($request->TR_GI_HEADER_PSTG_DATE),
+                "movement_type" => $movement_code,
+                "gr_detail_id" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"],
+                "base_qty" => -$row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
+                "base_uom" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
+                "created_by" => session("id")
+            ]);
             std_delete([
                 "table_name" => "TR_GR_DETAIL_LOCK",
                 "where" => [

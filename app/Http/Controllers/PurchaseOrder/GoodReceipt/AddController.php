@@ -514,7 +514,7 @@ class AddController extends Controller
         foreach ($gr_materials as $row) {
             $qr_code_number = session("plant")."-".uniqid();
 
-            $po_detail = std_get([
+            $po_detail1 = std_get([
                 "select" => ["TR_PO_DETAIL_SLOC","TR_PO_DETAIL_MATERIAL_CODE","TR_PO_DETAIL_PLANT_RCV","TR_PO_DETAIL_QTY_ORDER","TR_PO_DETAIL_QTY_DELIV","TR_PO_DETAIL_UOM"],
                 "table_name" => "TR_PO_DETAIL",
                 "where" => [
@@ -581,7 +581,7 @@ class AddController extends Controller
                     [
                         "field_name" => "MA_UOM_UOM",
                         "operator" => "=",
-                        "value" => $po_detail["TR_PO_DETAIL_UOM"]
+                        "value" => $po_detail1["TR_PO_DETAIL_UOM"]
                     ]
                 ],
                 "first_row" => true
@@ -609,7 +609,7 @@ class AddController extends Controller
                     "TR_GR_DETAIL_BASE_QTY" => $base_qty,
                     "TR_GR_DETAIL_BASE_UOM" => $master_material["MA_MATL_UOM"],
                     "TR_GR_DETAIL_LEFT_QTY" => NULL,
-                    "TR_GR_DETAIL_UNLOADING_PLANT" => $po_detail["TR_PO_DETAIL_PLANT_RCV"],
+                    "TR_GR_DETAIL_UNLOADING_PLANT" => $po_detail1["TR_PO_DETAIL_PLANT_RCV"],
                     "TR_GR_DETAIL_GL_ACCOUNT" => NULL,
                     "TR_GR_DETAIL_COST_CENTER" => NULL,
                     "TR_GR_DETAIL_EXP_DATE" => $row["expired_date"],

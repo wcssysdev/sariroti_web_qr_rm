@@ -932,4 +932,46 @@ class GoodsController extends Controller {
                     "data" => $select2
                         ], 200);
     }
+    
+    public function get_materials_for_type_y21(Request $request) {
+        $plant_code = $request->user_data->plant;
+        $materials = std_get([
+            "select" => ["MA_MATL_CODE as id", "MA_MATL_DESC as text"],
+            "table_name" => "MA_MATL",
+            "where" => [
+                [
+                    "field_name" => "MA_MATL_PLANT",
+                    "operator" => "=",
+                    "value" => $plant_code
+                ]
+            ],
+            "order_by" => [
+                [
+                    "field" => "MA_MATL_DESC",
+                    "type" => "ASC",
+                ]
+            ],
+            "distinct" => true
+        ]);
+        $slocid = get_sloc($plant_code);
+        if ($materials != null) {
+            foreach ($materials as $row) {
+                $materials_adj[] = [
+                    "id" => $row["id"],
+                    "text" => $row["id"] . " - " . $row["text"]
+                ];
+            }
+            return response()->json([
+                        "status" => "OK",
+                        "data" => $materials_adj,
+                        "sloc_data" => $slocid
+                            ], 200);
+        } else {
+            return response()->json([
+                        "status" => "OK",
+                        "data" => [],
+                        "sloc_data" => $slocid
+                            ], 200);
+        }
+    }    
 }

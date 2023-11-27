@@ -85,14 +85,11 @@ $(function () {
             @php
             $flag = 0;
             $mat_name = '';
-            if(!empty($row['gr_detail'][0]))
-            $mat_name = $row['gr_detail'][0]['TR_GR_DETAIL_MATERIAL_NAME'];
-            else;
             @endphp
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
                 <td style="text-align:center; padding: 5px;" rowspan="1">{{ $row["LG_MATERIAL_CODE"] }}</td>
-                <td style="text-align:center; padding: 5px;" rowspan="1">{{ $mat_name }}</td>
+                <td style="text-align:center; padding: 5px;" rowspan="1">{{ $row["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format($row["actual_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format($row["receipt_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format(abs($row["issued_qty"]), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
