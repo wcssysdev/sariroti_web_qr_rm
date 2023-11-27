@@ -625,7 +625,7 @@ class AddController extends Controller {
 
         $timestamp = date("Y-m-d H:i:s");
 
-        if (in_array($request->TR_TP_HEADER_MVT_CODE,["551","Y21","311","411"])) {
+        if (in_array($request->TR_TP_HEADER_MVT_CODE, ["551", "Y21", "311", "411"])) {
             if ($request->TR_TP_HEADER_PSTG_DATE == NULL || $request->TR_TP_HEADER_PSTG_DATE == "") {
                 return response()->json([
                             'message' => "Posting Date is Required"
@@ -773,8 +773,8 @@ class AddController extends Controller {
                         "TR_TP_DETAIL_UOM" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
                         "TR_TP_DETAIL_BASE_QTY" => $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
                         "TR_TP_DETAIL_BASE_UOM" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
-                        "TR_TP_DETAIL_MOBILE_QTY" => $mobile_qty,
-                        "TR_TP_DETAIL_MOBILE_UOM" => $mobile_uom,
+                        "TR_TP_DETAIL_MOBILE_QTY" => 0,
+                        "TR_TP_DETAIL_MOBILE_UOM" => 0,
                         "TR_TP_DETAIL_SLOC" => $row["TR_GR_DETAIL_LOCK_BOOKED_SLOC"],
                         "TR_TP_DETAIL_QR_CODE_NUMBER" => get_gr_detail_qr($row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]),
                         "TR_TP_DETAIL_NOTES" => NULL,
@@ -811,8 +811,8 @@ class AddController extends Controller {
                         "TR_TP_DETAIL_UOM" => $row["TR_TP_Y21_DETAIL_TEMP_BASE_UOM"],
                         "TR_TP_DETAIL_BASE_QTY" => $row["TR_TP_Y21_DETAIL_TEMP_BASE_QTY"],
                         "TR_TP_DETAIL_BASE_UOM" => $row["TR_TP_Y21_DETAIL_TEMP_BASE_UOM"],
-                        "TR_TP_DETAIL_MOBILE_QTY" => $row["TR_TP_Y21_DETAIL_TEMP_BASE_QTY"],
-                        "TR_TP_DETAIL_MOBILE_UOM" => $row["TR_TP_Y21_DETAIL_TEMP_BASE_UOM"],
+                        "TR_TP_DETAIL_MOBILE_QTY" => 0,
+                        "TR_TP_DETAIL_MOBILE_UOM" => 0,
                         "TR_TP_DETAIL_SLOC" => $row["TR_TP_Y21_DETAIL_TEMP_SLOC_TO"],
                         "TR_TP_DETAIL_SLOC_Y21_FROM" => $row["TR_TP_Y21_DETAIL_TEMP_SLOC_FROM"],
                         "TR_TP_DETAIL_Y21_EXP_DATE" => $row["TR_TP_Y21_DETAIL_TEMP_EXP_DATE"],
@@ -840,16 +840,66 @@ class AddController extends Controller {
 
         //Create New GR Case
         if ($request->TR_TP_HEADER_MVT_CODE != "Y21") {
-            foreach ($posting_materials as $row) {
-                std_update([
-                    "table_name" => "TR_GR_DETAIL",
-                    "where" => ["TR_GR_DETAIL_ID" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]],
-                    "data" => [
-                        "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"])
-                    ]
-                ]);
 
-                if ($request->TR_TP_HEADER_MVT_CODE == "551") {
+            /**
+             * START DEV 2023 NOV
+             */
+            if ($request->TR_TP_HEADER_MVT_CODE != "551") {
+                foreach ($posting_materials as $row) {
+                    std_update([
+                        "table_name" => "TR_GR_DETAIL",
+                        "where" => ["TR_GR_DETAIL_ID" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]],
+                        "data" => [
+                            "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"])
+                        ]
+                    ]);
+                    $gr_detail_new_gr = std_get([
+                        "select" => ["*"],
+                        "table_name" => "TR_GR_DETAIL",
+                        "join" => [
+                            [
+                                "join_type" => "inner",
+                                "table_name" => "TR_GR_HEADER",
+                                "on1" => "TR_GR_HEADER.TR_GR_HEADER_ID",
+                                "operator" => "=",
+                                "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
+                            ]
+                        ],
+                        "where" => [
+                            [
+                                "field_name" => "TR_GR_DETAIL_ID",
+                                "operator" => "=",
+                                "value" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]
+                            ]
+                        ],
+                        "first_row" => true
+                    ]);
+
+                    insert_material_log([
+                        "material_code" => $gr_detail_new_gr["TR_GR_DETAIL_MATERIAL_CODE"],
+                        "plant_code" => $gr_detail_new_gr["TR_GR_DETAIL_UNLOADING_PLANT"],
+                        "posting_date" => $converted_date,
+                        "movement_type" => $gr_detail_new_gr["TR_GR_HEADER_MVT_CODE"],
+                        "gr_detail_id" => $gr_detail_new_gr["TR_GR_DETAIL_ID"],
+                        "base_qty" => -$row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
+                        "base_uom" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
+                        "created_by" => session("id"),
+                    ]);
+                }
+                /**
+                 * END DEV
+                 * 2023 NOV
+                 */
+            } else {
+                foreach ($posting_materials as $row) {
+                    std_update([
+                        "table_name" => "TR_GR_DETAIL",
+                        "where" => ["TR_GR_DETAIL_ID" => $row["TR_GR_DETAIL_LOCK_GR_DETAIL_ID"]],
+                        "data" => [
+                            "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"])
+                        ]
+                    ]);
+
                     insert_material_log([
                         "material_code" => $row["TR_GR_DETAIL_MATERIAL_CODE"],
                         "plant_code" => session("plant"),
@@ -895,13 +945,13 @@ class AddController extends Controller {
                 $count++;
 
                 $exp_date_y21 = $row["TR_TP_Y21_DETAIL_TEMP_EXP_DATE"];
-                if($row['TR_TP_Y21_DETAIL_TEMP_EXP_DATE']){
+                if ($row['TR_TP_Y21_DETAIL_TEMP_EXP_DATE']) {
                     $exploded_exp_date = explode("-", $row['TR_TP_Y21_DETAIL_TEMP_EXP_DATE']);
-                    if(count($exploded_exp_date) == 3){
-                        if(strlen($exploded_exp_date[0]) == 2){
+                    if (count($exploded_exp_date) == 3) {
+                        if (strlen($exploded_exp_date[0]) == 2) {
                             $exp_date_y21 = convert_to_y_m_d($row["TR_TP_Y21_DETAIL_TEMP_EXP_DATE"]);
                         }
-                    }else{
+                    } else {
                         $exp_date_y21 = convert_to_y_m_d($row["TR_TP_Y21_DETAIL_TEMP_EXP_DATE"]);
                     }
                 }
@@ -977,7 +1027,7 @@ class AddController extends Controller {
              * Fitur TP Plan dinon-aktifkan
              * Save TP langsung create CSV untuk siap posting
              */
-            if (in_array($request->TR_TP_HEADER_MVT_CODE, ['511', '311'])) {
+            if (in_array($request->TR_TP_HEADER_MVT_CODE, ['511', '311','411'])) {
                 generate_tp_csv($tp_id, session("plant"));
             }
         }

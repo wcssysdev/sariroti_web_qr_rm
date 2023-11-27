@@ -97,6 +97,7 @@ Route::group(['middleware' => 'check_user_token'], function () {
     Route::get('master/goods/tp_materials', 'Api\Master\GoodsController@get_tp_list_materials');    
     Route::get('master/goods/tp_materials_y21', 'Api\Master\GoodsController@get_materials_for_type_y21');    
     Route::get('master/goods/tp_gr_detail', 'Api\Master\GoodsController@get_tp_list_gr_details_by_mat_code');    
+    Route::get('master/goods/tp_get_batch', 'Api\Master\GoodsController@get_material_batch_y21');    
     
     Route::post('transaction/purchase_order/good_issue/submit_gi', 'Api\Transaction\PurchaseOrder\GoodIssueController@submit_gi');
     Route::get('transaction/purchase_order/good_issue/history_header_gi', 'Api\Transaction\PurchaseOrder\GoodIssueController@history_header_created_by');    

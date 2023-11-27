@@ -90,7 +90,7 @@ class GoodsController extends Controller {
 //                    "operator" => "=",
 //                    "value" => '411',
 //                ]
-            ],            
+            ],
             "order_by" => [
                 [
                     "field" => "MA_MVT_ID",
@@ -330,7 +330,7 @@ class GoodsController extends Controller {
                 "field_name" => "TR_GR_HEADER_IS_CANCELLED",
                 "operator" => "!=",
                 "value" => true
-            ]            
+            ]
         ];
 
         $conds = array_merge($conds, [
@@ -348,7 +348,7 @@ class GoodsController extends Controller {
                 "field_name" => "TR_PO_HEADER_IS_DELETED",
                 "operator" => "=",
                 "value" => false
-            ]        
+            ]
         ]);
 
         if (isset($request->plant_code) && $request->plant_code != "") {
@@ -423,7 +423,7 @@ class GoodsController extends Controller {
                     "on1" => "MA_VENDOR.MA_VENDOR_CODE",
                     "operator" => "=",
                     "on2" => "TR_PO_HEADER.TR_PO_HEADER_VENDOR",
-                ],                
+                ],
             ],
             "where" => $conds,
             "distinct" => true
@@ -901,10 +901,10 @@ class GoodsController extends Controller {
              * 2023 Nov
              * 
              * sebelum Nov :
-             * 1. ada TP movement code 311 dan 551
+             * 1. ada TP movement code 311,411 dan 551
              * 
              * setelah CR GR/GI:
-             * 1. hanya ada mvt code 311/TP
+             * 1. hanya ada mvt code 311/TP,411
              */
 //            $conditions = array_merge($conditions, [
 //                [
@@ -919,10 +919,11 @@ class GoodsController extends Controller {
         $select2 = [];
         if ($gr_data != null) {
             foreach ($gr_data as $row) {
+                $batch = empty($row["TR_GR_DETAIL_SAP_BATCH"]) ? "-" : $row["TR_GR_DETAIL_SAP_BATCH"];
                 $select2 = array_merge($select2, [
                     [
                         "id" => $row["TR_GR_DETAIL_ID"],
-                        "text" => $row["TR_GR_DETAIL_ID"] . " | " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $row["TR_GR_DETAIL_SAP_BATCH"] . " | " . $row["TR_GR_DETAIL_EXP_DATE"]
+                        "text" => $row["TR_GR_DETAIL_ID"] . " | " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $batch . " | " . $row["TR_GR_DETAIL_EXP_DATE"]
                     ]
                 ]);
             }
@@ -932,7 +933,7 @@ class GoodsController extends Controller {
                     "data" => $select2
                         ], 200);
     }
-    
+
     public function get_materials_for_type_y21(Request $request) {
         $plant_code = $request->user_data->plant;
         $materials = std_get([
@@ -973,5 +974,57 @@ class GoodsController extends Controller {
                         "sloc_data" => $slocid
                             ], 200);
         }
-    }    
+    }
+
+    public function get_material_batch_y21(Request $request) {
+        $plant_code = $request->user_data->plant;
+        $material = std_get([
+            "select" => ["MA_MATL_BATCH as id", "MA_MATL_BATCH as text"],
+            "table_name" => "MA_MATL",
+            "where" => [
+                [
+                    "field_name" => "MA_MATL_CODE",
+                    "operator" => "=",
+                    "value" => $request->material_code
+                ],
+                [
+                    "field_name" => "MA_MATL_PLANT",
+                    "operator" => "=",
+                    "value" => $plant_code
+                ],
+                [
+                    "field_name" => "MA_MATL_BATCH",
+                    "operator" => "!=",
+                    "value" => ""
+                ]
+            ],
+            "distinct" => true
+        ]);
+
+        $base_material = std_get([
+            "select" => ["MA_MATL_UOM"],
+            "table_name" => "MA_MATL",
+            "where" => [
+                [
+                    "field_name" => "MA_MATL_CODE",
+                    "operator" => "=",
+                    "value" => $request->material_code
+                ],
+                [
+                    "field_name" => "MA_MATL_PLANT",
+                    "operator" => "=",
+                    "value" => $plant_code
+                ]
+            ],
+            "first_row" => true
+        ]);
+
+        return response()->json([
+                    "status" => "OK",
+                    "data" => [
+                        "batch" => $material,
+                        "base_uom" => $base_material["MA_MATL_UOM"]
+                    ]
+                        ], 200);
+    }
 }
