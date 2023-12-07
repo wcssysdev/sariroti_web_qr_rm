@@ -29,10 +29,10 @@ $(function () {
             <h3 class="card-label">Good Movement Report</h3>
         </div>
         <div class="card-toolbar">
-            <a class="btn btn-primary font-weight-bolder" onclick="javascript:printDiv('printable')">
+            <a class="btn btn-primary font-weight-bolder" style="margin-right:7px;" onclick="javascript:printDiv('printable')">
                 <i class="fas fa-print"></i>Print
             </a>
-            <a target="_blank" href="{{ route('goods_mvt_detail_excel', ['plant_code' => $plant_selected,'sloc_code' => $sloc_selected,'material_code' => $mat_selected,'start_date' => $sdate,'end_date' => $edate]) }}" class="btn btn-primary font-weight-bolder" onclick="javascript:false;">
+            <a target="_blank" href="{{ route('goods_mvt_detail_excel', ['plant_code' => $plant_selected,'sloc_code' => $sloc_selected,'material_code' => $mat_selected,'start_date' => htmlentities($sdate),'end_date' => htmlentities($edate)]) }}" class="btn btn-primary font-weight-bolder" onclick="javascript:false;">
                 <i class="fas fa-book"></i>Excel
             </a>
         </div>

@@ -27,14 +27,23 @@ $(function () {
     <form class="form" id="form" method="GET" action="">
         <div class="card-body">
             <div class="form-group row">
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                     <label>Date: </label>
-                    <input type="text" class="form-control date" name="date" value="{{ $date }}">
+                    <div class="input-daterange input-group" id="kt_datepicker_5">
+                        <input type="text" class="form-control date" name="start_date" autocomplete="off"
+                               placeholder="Start" value="{{ $start_date }}">
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                -
+                            </span>
+                        </div>
+                        <input type="text" class="form-control date" name="end_date" autocomplete="off"
+                               placeholder="End" value="{{ $end_date }}">
+                    </div>
                 </div>
-                <div class="col-lg-3">
+                <div class="col-lg-4">
                     <label>Plant:</label>
                     <select class="form-control" id="plant_select2" name="plant_code">
-                        <option></option>
                         @foreach ($plant as $row)
                         <option value="{{ $row["MA_PLANT_CODE"] }}" 
                                 @if ($row["MA_PLANT_CODE"] == $plant_selected)
@@ -61,10 +70,10 @@ $(function () {
             <h3 class="card-label">Stock Report</h3>
         </div>
         <div class="card-toolbar">
-            <a class="btn btn-primary font-weight-bolder" onclick="javascript:printDiv('printable')">
+            <a class="btn btn-primary font-weight-bolder" style="margin-right:7px;" onclick="javascript:printDiv('printable')">
                 <i class="fas fa-print"></i>Print
             </a>
-            <a target="_blank" href="{{ route('stock_report_excel', ['plant_code' => $plant_selected,'date' => $date]) }}" class="btn btn-primary font-weight-bolder" onclick="javascript:false;">
+            <a target="_blank" href="{{ route('stock_report_excel', ['plant_code' => $plant_selected,'start_date' => htmlentities($start_date),'end_date' => htmlentities($end_date)]) }}" class="btn btn-primary font-weight-bolder" onclick="javascript:false;">
                 <i class="fas fa-book"></i>Excel
             </a>                 
         </div>
@@ -83,19 +92,28 @@ $(function () {
             </tr>
             @foreach ($open_balance as $row)
             @php
+            if(empty($row["TR_GR_DETAIL_MATERIAL_NAME"])){
+            $matname = "";
+            }else{
+            $matname = $row["TR_GR_DETAIL_MATERIAL_NAME"];
+            }
+            $sloc = "";
+            if(!empty($row["TR_GR_DETAIL_SLOC"])){
+            $sloc = $row["TR_GR_DETAIL_SLOC"];
+            }
             $flag = 0;
             $mat_name = '';
             @endphp
             <tr>
-                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $sloc }}</td>
                 <td style="text-align:center; padding: 5px;" rowspan="1">{{ $row["LG_MATERIAL_CODE"] }}</td>
-                <td style="text-align:center; padding: 5px;" rowspan="1">{{ $row["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
+                <td style="text-align:center; padding: 5px;" rowspan="1">{{ $matname }}</td>
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format($row["actual_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format($row["receipt_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format(abs($row["issued_qty"]), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format($row["closing_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td nowrap="nowrap" style="text-align:center; padding: 5px;">
-                    <a href="{{ route('stock_detail_report_view', ['plant_code' => $plant_selected,'sloc_code' => $row['TR_GR_DETAIL_SLOC'],'material_code' => $row['LG_MATERIAL_CODE'],'date' => $date]) }}" class="btn btn-sm btn-clean btn-icon"> <i
+                    <a href="{{ route('stock_detail_report_view', ['plant_code' => $plant_selected,'sloc_code' => $sloc,'material_code' => $row['LG_MATERIAL_CODE'],'start_date' => $start_date,'end_date' => $end_date]) }}" class="btn btn-sm btn-clean btn-icon"> <i
                             class="la la-eye"></i>
                     </a>
                 </td>                    

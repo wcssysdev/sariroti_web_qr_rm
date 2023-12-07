@@ -42,11 +42,11 @@
                 <td>{{ number_format($data["TR_GI_SAPDETAIL_BASE_QTY"],2)." ".$data["TR_GI_SAPDETAIL_BASE_UOM"]}}</td>
             </tr>
             <tr>
-                <td><b>Storage Location</b></td>
+                <td><b>S.Loc</b></td>
                 <td>{{$data["TR_GI_SAPDETAIL_SLOC"]}}</td>
             </tr>
             <tr>
-                <td><b>Expired Date</b></td>
+                <td><b>Exp Date</b></td>
                 <td>{{$data["TR_GR_DETAIL_EXP_DATE"]}}</td>
             </tr>
             <tr>

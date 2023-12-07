@@ -600,7 +600,7 @@ class GoodsController extends Controller {
             foreach ($materials as $row) {
                 $materials_adj[] = [
                     "id" => $row["TR_PO_DETAIL_ID"],
-                    "text" => $row["TR_PO_DETAIL_MATERIAL_CODE"] . " - " . $row["TR_PO_DETAIL_MATERIAL_NAME"]
+                    "text" => $row["TR_PO_DETAIL_MATERIAL_NAME"]
                 ];
             }
             return response()->json([
@@ -808,7 +808,7 @@ class GoodsController extends Controller {
             foreach ($materials as $row) {
                 $materials_adj[] = [
                     "id" => $row["id"],
-                    "text" => $row["id"] . " - " . $row["text"]
+                    "text" => $row["text"]
                 ];
             }
             return response()->json([
@@ -923,7 +923,8 @@ class GoodsController extends Controller {
                 $select2 = array_merge($select2, [
                     [
                         "id" => $row["TR_GR_DETAIL_ID"],
-                        "text" => $row["TR_GR_DETAIL_ID"] . " | " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $batch . " | " . $row["TR_GR_DETAIL_EXP_DATE"]
+                        "text" => $row["TR_GR_DETAIL_ID"] . " | " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $batch . " | " . $row["TR_GR_DETAIL_EXP_DATE"] .' | '.$row['TR_GR_DETAIL_SLOC'],
+                        "itemSplit" => $row["TR_GR_DETAIL_ID"] . "|" . $row["TR_GR_DETAIL_LEFT_QTY"] . " " . $row["TR_GR_DETAIL_BASE_UOM"] . "|" . $batch . "|" . $row["TR_GR_DETAIL_EXP_DATE"] .'|'.$row['TR_GR_DETAIL_SLOC']
                     ]
                 ]);
             }
@@ -954,24 +955,21 @@ class GoodsController extends Controller {
             ],
             "distinct" => true
         ]);
-        $slocid = get_sloc($plant_code);
         if ($materials != null) {
             foreach ($materials as $row) {
                 $materials_adj[] = [
                     "id" => $row["id"],
-                    "text" => $row["id"] . " - " . $row["text"]
+                    "text" => $row["text"]
                 ];
             }
             return response()->json([
                         "status" => "OK",
                         "data" => $materials_adj,
-                        "sloc_data" => $slocid
                             ], 200);
         } else {
             return response()->json([
                         "status" => "OK",
                         "data" => [],
-                        "sloc_data" => $slocid
                             ], 200);
         }
     }
@@ -979,7 +977,7 @@ class GoodsController extends Controller {
     public function get_material_batch_y21(Request $request) {
         $plant_code = $request->user_data->plant;
         $material = std_get([
-            "select" => ["MA_MATL_BATCH as id", "MA_MATL_BATCH as text"],
+            "select" => ["MA_MATL_ID as id", "MA_MATL_BATCH as text"],
             "table_name" => "MA_MATL",
             "where" => [
                 [
@@ -1021,10 +1019,8 @@ class GoodsController extends Controller {
 
         return response()->json([
                     "status" => "OK",
-                    "data" => [
-                        "batch" => $material,
-                        "base_uom" => $base_material["MA_MATL_UOM"]
-                    ]
+                    "data" => $material,
+                    "base_uom" => $base_material["MA_MATL_UOM"]
                         ], 200);
     }
 }

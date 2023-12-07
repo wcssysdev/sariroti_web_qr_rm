@@ -101,5 +101,7 @@ Route::group(['middleware' => 'check_user_token'], function () {
     
     Route::post('transaction/purchase_order/good_issue/submit_gi', 'Api\Transaction\PurchaseOrder\GoodIssueController@submit_gi');
     Route::get('transaction/purchase_order/good_issue/history_header_gi', 'Api\Transaction\PurchaseOrder\GoodIssueController@history_header_created_by');    
-    Route::get('transaction/purchase_order/good_issue/history_header_gi', 'Api\Transaction\PurchaseOrder\GoodIssueController@history_header_created_by');    
+    Route::get('transaction/good_movement/transfer_posting/history_header_tp', 'Api\Transaction\GoodMovement\TransferPostingController@history_header_created_by');    
+    
+    Route::post('transaction/good_movement/transfer_posting/submit_tp', 'Api\Transaction\GoodMovement\TransferPostingController@submit_tp');
 });

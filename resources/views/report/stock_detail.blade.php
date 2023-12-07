@@ -30,10 +30,10 @@ $(function () {
             <h3 class="card-label">Stock Report</h3>
         </div>
         <div class="card-toolbar">
-            <a class="btn btn-primary font-weight-bolder" onclick="javascript:printDiv('printable')">
+            <a class="btn btn-primary font-weight-bolder" style="margin-right:7px;" onclick="javascript:printDiv('printable')">
                 <i class="fas fa-print"></i>Print
             </a>
-            <a target="_blank" href="{{ route('stock_detail_report_excel', ['plant_code' => $plant_selected,'sloc_code' => $sloc,'material_code' => $mat_code,'date' => $date]) }}" class="btn btn-primary font-weight-bolder" onclick="javascript:false;">
+            <a target="_blank" href="{{ route('stock_detail_report_excel', ['plant_code' => $plant_selected,'sloc_code' => $sloc,'material_code' => $mat_code,'start_date' => htmlentities($start_date),'end_date' => htmlentities($end_date)]) }}" class="btn btn-primary font-weight-bolder" onclick="javascript:false;">
                 <i class="fas fa-book"></i>Excel
             </a>              
         </div>

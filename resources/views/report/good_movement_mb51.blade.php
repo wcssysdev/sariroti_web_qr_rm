@@ -8,14 +8,14 @@
 @push('scripts')
 <script src="{{ asset('custom/js/report/print.js') }}"></script>
 <script src="{{ asset('custom/library/jquery.rowspanizer.js-master/jquery.rowspanizer.min.js') }}"></script>
-<script>
+<!--<script>
 $(function () {
     $('#report_table').rowspanizer({
         vertical_align: 'middle',
-        columns: [0, 1, 2]
+        columns: [0, 1, 2, 3]
     });
 });
-</script>
+</script>-->
 @endpush
 
 @section('content')
@@ -73,38 +73,50 @@ $(function () {
             <a class="btn btn-primary font-weight-bolder" style="margin-right:7px;" onclick="javascript:printDiv('printable')">
                 <i class="fas fa-print"></i>Print
             </a>
-            <a target="_blank" href="{{ route('goods_mvt_excel', ['plant_code' => $plant_selected,'start_date' => htmlentities($start),'end_date' => htmlentities($end)]) }}" class="btn btn-primary font-weight-bolder" onclick="javascript:false;">
+            <a target="_blank" href="{{ route('goods_mvt_excel', ['plant_code' => $plant_selected,'sloc_code' => '','material_code' => '','start_date' => htmlentities($start),'end_date' => htmlentities($end)]) }}" class="btn btn-primary font-weight-bolder" onclick="javascript:false;">
                 <i class="fas fa-book"></i>Excel
-            </a>            
+            </a>
         </div>
     </div>
     <div class="card-body" id="printable">
         <table border="1" style="width:100%;" id="report_table">
             <tr>
-                <td style="text-align:center; padding: 5px;width:10%;"><b>Storage Location</b></td>
-                <td style="text-align:center; padding: 5px;width:10%;"><b>Material Code</b></td>
-                <td style="text-align:center; padding: 5px;width:10%;"><b>Material Name</b></td>
-                <td style="text-align:center; padding: 5px;width:10%;"><b>Status</b></td>
-                <td style="text-align:center; padding: 5px;width:10%;"><b>Qty</b></td>
-                <td style="text-align:center; padding: 5px;width:10%;"><b>Action</b></td>
+
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Material</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Material Desc</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Quantity in Unit Entry</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Entri Unit</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Posting Date</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Doc. Date</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>PO</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Plant</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Batch</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Sloc</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Mvt Type</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Mat. Doc.</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Entry Date</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>Time</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>User</b></td>
+
+
             </tr>
             @foreach ($data as $row)
             <tr>
-                <td style="text-align:center; padding: 5px;">{{ $row["MA_SLOC_CODE"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_CODE"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
-                <td style="text-align:center; padding: 5px;">
-                    @if ($row["SUM_QTY"] >= 0)
-                    IN
-                    @else
-                    OUT
-                    @endif</td>                
-                <td style="text-align:right; padding: 5px;">{{ number_format(abs($row["SUM_QTY"]), 2) }}</td>
-                <td nowrap="nowrap" style="text-align:center; padding: 5px;">
-                    <a href="{{ route('goods_mvt_detail', ['plant_code' => $plant_selected,'sloc_code' => $row['MA_SLOC_CODE'],'material_code' => $row['LG_MATERIAL_CODE'],'start_date' => $start,'end_date' => $end]) }}" class="btn btn-sm btn-clean btn-icon"> <i
-                            class="la la-eye"></i>
-                    </a>
-                </td>
+                <td style="text-align:right; padding: 5px;">{{ number_format($row["LG_MATERIAL_QTY"], 2)}}</td>
+                <td style="text-align:right; padding: 5px;">{{ $row["TR_GR_DETAIL_BASE_UOM"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_POSTING_DATE"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_HEADER_DOC_DATE"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_HEADER_PO_NUMBER"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_PLANT_CODE"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SAP_BATCH"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["MA_SLOC_CODE"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_MVT_TYPE"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_HEADER_SAP_DOC"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["ENTRY_DATE"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["ENTRY_TIME"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["MA_USRACC_FULL_NAME"] }}</td>
             </tr>
             @endforeach
         </table>

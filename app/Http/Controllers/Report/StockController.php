@@ -13,7 +13,7 @@ class StockController extends Controller {
     public function get_opening_balance($plant_code, $start_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
             "select" => [
-                "LG_MATERIAL_CODE","TR_GR_DETAIL_MATERIAL_NAME",
+                "LG_MATERIAL_CODE", "TR_GR_DETAIL_MATERIAL_NAME",
                 "LG_MATERIAL_UOM", "TR_GR_DETAIL_SLOC",
                 DB::raw('SUM("LG_MATERIAL_QTY") as ACTUAL_QTY')
             ],
@@ -49,7 +49,7 @@ class StockController extends Controller {
                     "type" => "ASC",
                 ],
             ],
-            "group_by" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE","TR_GR_DETAIL_MATERIAL_NAME", "LG_MATERIAL_UOM"]
+            "group_by" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "TR_GR_DETAIL_MATERIAL_NAME", "LG_MATERIAL_UOM"]
         ];
         if ($is_detail) {
             $statement['select'][] = "TR_GR_DETAIL_MATERIAL_NAME";
@@ -73,7 +73,7 @@ class StockController extends Controller {
         return $data;
     }
 
-    public function get_receipt_balance($plant_code, $start_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
+    public function get_receipt_balance($plant_code, $start_date, $end_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
             "select" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM", DB::raw('SUM("LG_MATERIAL_QTY") as Qty')],
             "table_name" => "LG_MATERIAL",
@@ -94,8 +94,13 @@ class StockController extends Controller {
                 ],
                 [
                     "field_name" => "LG_MATERIAL_POSTING_DATE",
-                    "operator" => "=",
+                    "operator" => ">=",
                     "value" => $start_date
+                ],
+                [
+                    "field_name" => "LG_MATERIAL_POSTING_DATE",
+                    "operator" => "<",
+                    "value" => $end_date
                 ],
                 [
                     "field_name" => "LG_MATERIAL_QTY",
@@ -137,7 +142,7 @@ class StockController extends Controller {
         return $data;
     }
 
-    public function get_issued_balance($plant_code, $start_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
+    public function get_issued_balance($plant_code, $start_date, $end_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
             "select" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM", DB::raw('SUM("LG_MATERIAL_QTY") as Qty')],
             "table_name" => "LG_MATERIAL",
@@ -158,8 +163,13 @@ class StockController extends Controller {
                 ],
                 [
                     "field_name" => "LG_MATERIAL_POSTING_DATE",
-                    "operator" => "=",
+                    "operator" => ">=",
                     "value" => $start_date
+                ],
+                [
+                    "field_name" => "LG_MATERIAL_POSTING_DATE",
+                    "operator" => "<",
+                    "value" => $end_date
                 ],
                 [
                     "field_name" => "LG_MATERIAL_QTY",
@@ -309,18 +319,22 @@ class StockController extends Controller {
                 "first_row" => false
             ]);
         }
-
-        if ($request->plant_code != NULL && $request->date != NULL) {
+        if (empty($request->start_date)) {
+            $request->start_date = "01" . date("/m/Y");
+        }
+        if (empty($request->end_date)) {
+            $request->end_date = date("d/m/Y");
+        }
+        if ($request->plant_code != NULL && $request->start_date != NULL && $request->end_date != NULL) {
             if (session("user_role") != 6) {
                 if ($request->plant_code != session("plant")) {
                     abort(404);
                 }
             }
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->date));
-            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->date));
-            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->date));
-            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->date));
-
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->start_date));
+            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date));
+            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date));
+            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->end_date), convert_to_y_m_d($request->end_date));
             for ($i = 0; $i < count($receipt_balance); $i++) {
                 $key = array_search($receipt_balance[$i]["LG_MATERIAL_CODE"], array_column($open_balance, 'LG_MATERIAL_CODE'));
                 if ($key !== false) {
@@ -329,7 +343,7 @@ class StockController extends Controller {
 //                    dd($receipt_balance);
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $receipt_balance[$i]["LG_MATERIAL_CODE"],
-                        "TR_GR_DETAIL_MATERIAL_NAME" => $receipt_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
+                        "TR_GR_DETAIL_MATERIAL_NAME" => $open_balance[$key]["TR_GR_DETAIL_MATERIAL_NAME"],
                         "LG_MATERIAL_UOM" => $receipt_balance[$i]["LG_MATERIAL_UOM"],
                         "actual_qty" => "0",
                         "receipt_qty" => $receipt_balance[$i]["qty"]
@@ -344,7 +358,7 @@ class StockController extends Controller {
                 } else {
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $issued_balance[$i]["LG_MATERIAL_CODE"],
-                        "TR_GR_DETAIL_MATERIAL_NAME" => $issued_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
+                        "TR_GR_DETAIL_MATERIAL_NAME" => $open_balance[$key]["TR_GR_DETAIL_MATERIAL_NAME"],
                         "LG_MATERIAL_UOM" => $issued_balance[$i]["LG_MATERIAL_UOM"],
                         "actual_qty" => "0",
                         "issued_qty" => $issued_balance[$i]["qty"]
@@ -371,16 +385,14 @@ class StockController extends Controller {
                 }
 //                die();
             }
-        } else {
-            $request->date = date("d-m-Y");
         }
 
         return view('report/stock', [
             "open_balance" => $open_balance,
-            "date" => $request->date,
+            "start_date" => $request->start_date,
+            "end_date" => $request->end_date,
             "plant" => $plant,
             "plant_selected" => $request->plant_code,
-            "date" => $request->date
         ]);
     }
 
@@ -422,16 +434,22 @@ class StockController extends Controller {
                 "first_row" => false
             ]);
         }
-        if ($request->plant_code != NULL && $request->date != NULL) {
+        if (empty($request->start_date)) {
+            $request->start_date = "01" . date("/m/Y");
+        }
+        if (empty($request->end_date)) {
+            $request->end_date = date("d/m/Y");
+        }
+        if ($request->plant_code != NULL && $request->start_date != NULL && $request->end_date != NULL) {
             if (session("user_role") != 6) {
                 if ($request->plant_code != session("plant")) {
                     abort(404);
                 }
             }
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->date));
-            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->date));
-            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->date));
-            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->date));
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->start_date));
+            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date));
+            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date));
+            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->end_date), convert_to_y_m_d($request->end_date));
 
             for ($i = 0; $i < count($receipt_balance); $i++) {
                 $key = array_search($receipt_balance[$i]["LG_MATERIAL_CODE"], array_column($open_balance, 'LG_MATERIAL_CODE'));
@@ -440,7 +458,7 @@ class StockController extends Controller {
                 } else {
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $receipt_balance[$i]["LG_MATERIAL_CODE"],
-                        "TR_GR_DETAIL_MATERIAL_NAME" => $receipt_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
+                        "TR_GR_DETAIL_MATERIAL_NAME" => $open_balance[$key]["TR_GR_DETAIL_MATERIAL_NAME"],
                         "LG_MATERIAL_UOM" => $receipt_balance[$i]["LG_MATERIAL_UOM"],
                         "actual_qty" => "0",
                         "receipt_qty" => $receipt_balance[$i]["qty"]
@@ -455,7 +473,7 @@ class StockController extends Controller {
                 } else {
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $issued_balance[$i]["LG_MATERIAL_CODE"],
-                        "TR_GR_DETAIL_MATERIAL_NAME" => $issued_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
+                        "TR_GR_DETAIL_MATERIAL_NAME" => $open_balance[$key]["TR_GR_DETAIL_MATERIAL_NAME"],
                         "LG_MATERIAL_UOM" => $issued_balance[$i]["LG_MATERIAL_UOM"],
                         "actual_qty" => "0",
                         "issued_qty" => $issued_balance[$i]["qty"]
@@ -481,10 +499,7 @@ class StockController extends Controller {
                     }
                 }
             }
-        } else {
-            $request->date = date("d-m-Y");
         }
-
         $dtkmnt = date("YmdHis");
         $file_name = "stock_report_" . $request->plant_code . "_" . $dtkmnt . ".xlsx";
         $file_name_url = "storage/app/$file_name";
@@ -506,7 +521,8 @@ class StockController extends Controller {
             if (!empty($open_balance[$i]['gr_detail'][0])) {
                 $mat_name = $row['gr_detail'][0]['TR_GR_DETAIL_MATERIAL_NAME'];
             }
-            $sheet->setCellValue('A' . ($counter), $open_balance[$i]["TR_GR_DETAIL_SLOC"]);
+            $sloc = (empty($open_balance[$i]["TR_GR_DETAIL_SLOC"]) ? "" : $open_balance[$i]["TR_GR_DETAIL_SLOC"]);
+            $sheet->setCellValue('A' . ($counter), $sloc);
 
             $sheet->setCellValue('B' . ($counter), $open_balance[$i]["LG_MATERIAL_CODE"]);
             $sheet->setCellValue('C' . ($counter), $mat_name);
@@ -532,17 +548,16 @@ class StockController extends Controller {
         $issued_balance = [];
         $gr_detail = [];
 
-        if ($request->plant_code != NULL && $request->date != NULL) {
+        if ($request->plant_code != NULL && $request->start_date != NULL && $request->end_date != NULL) {
             if (session("user_role") != 6) {
                 if ($request->plant_code != session("plant")) {
                     abort(404);
                 }
             }
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->date), $request->sloc_code, $request->material_code, TRUE);
-            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->date), $request->sloc_code, $request->material_code, TRUE);
-            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->date), $request->sloc_code, $request->material_code, TRUE);
-            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->date), $request->sloc_code, $request->material_code);
-
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->start_date), $request->sloc_code, $request->material_code, TRUE);
+            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date), $request->sloc_code, $request->material_code, TRUE);
+            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date), $request->sloc_code, $request->material_code, TRUE);
+            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->end_date), $request->sloc_code, $request->material_code);
             for ($i = 0; $i < count($receipt_balance); $i++) {
                 $key = array_search($receipt_balance[$i]["LG_MATERIAL_CODE"], array_column($open_balance, 'LG_MATERIAL_CODE'));
                 if ($key !== false) {
@@ -550,7 +565,7 @@ class StockController extends Controller {
                 } else {
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $receipt_balance[$i]["LG_MATERIAL_CODE"],
-                        "TR_GR_DETAIL_MATERIAL_NAME" => $receipt_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
+                        "TR_GR_DETAIL_MATERIAL_NAME" => $open_balance[$key]["TR_GR_DETAIL_MATERIAL_NAME"],
                         "LG_MATERIAL_UOM" => $receipt_balance[$i]["LG_MATERIAL_UOM"],
                         "actual_qty" => "0",
                         "receipt_qty" => $receipt_balance[$i]["qty"]
@@ -565,7 +580,7 @@ class StockController extends Controller {
                 } else {
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $issued_balance[$i]["LG_MATERIAL_CODE"],
-                        "TR_GR_DETAIL_MATERIAL_NAME" => $issued_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
+                        "TR_GR_DETAIL_MATERIAL_NAME" => $open_balance[$key]["TR_GR_DETAIL_MATERIAL_NAME"],
                         "LG_MATERIAL_UOM" => $issued_balance[$i]["LG_MATERIAL_UOM"],
                         "actual_qty" => "0",
                         "issued_qty" => $issued_balance[$i]["qty"]
@@ -591,13 +606,12 @@ class StockController extends Controller {
                     }
                 }
             }
-        } else {
-            $request->date = date("d-m-Y");
         }
 //        dd($open_balance);
         return view('report/stock_detail', [
             "open_balance" => $open_balance,
-            "date" => $request->date,
+            "start_date" => htmlentities($request->start_date),
+            "end_date" => htmlentities($request->end_date),
             "sloc" => $request->sloc_code,
             "mat_code" => $request->material_code,
             "plant_selected" => $request->plant_code,
@@ -611,16 +625,18 @@ class StockController extends Controller {
         $issued_balance = [];
         $gr_detail = [];
 
-        if ($request->plant_code != NULL && $request->date != NULL) {
+        if ($request->plant_code != NULL && $request->start_date != NULL && $request->end_date != NULL) {
             if (session("user_role") != 6) {
                 if ($request->plant_code != session("plant")) {
                     abort(404);
                 }
             }
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->date), $request->sloc_code, $request->material_code, TRUE);
-            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->date), $request->sloc_code, $request->material_code, TRUE);
-            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->date), $request->sloc_code, $request->material_code, TRUE);
-            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->date), $request->sloc_code, $request->material_code);
+            $sdate = html_entity_decode($request->start_date);
+            $edate = html_entity_decode($request->end_date);
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, TRUE);
+            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
+            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
+            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($edate), $request->sloc_code, $request->material_code);
 
             for ($i = 0; $i < count($receipt_balance); $i++) {
                 $key = array_search($receipt_balance[$i]["LG_MATERIAL_CODE"], array_column($open_balance, 'LG_MATERIAL_CODE'));
@@ -629,7 +645,7 @@ class StockController extends Controller {
                 } else {
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $receipt_balance[$i]["LG_MATERIAL_CODE"],
-                        "TR_GR_DETAIL_MATERIAL_NAME" => $receipt_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
+                        "TR_GR_DETAIL_MATERIAL_NAME" => $open_balance[$key]["TR_GR_DETAIL_MATERIAL_NAME"],
                         "LG_MATERIAL_UOM" => $receipt_balance[$i]["LG_MATERIAL_UOM"],
                         "actual_qty" => "0",
                         "receipt_qty" => $receipt_balance[$i]["qty"]
@@ -644,7 +660,7 @@ class StockController extends Controller {
                 } else {
                     array_push($open_balance, [
                         "LG_MATERIAL_CODE" => $issued_balance[$i]["LG_MATERIAL_CODE"],
-                        "TR_GR_DETAIL_MATERIAL_NAME" => $issued_balance[$i]["TR_GR_DETAIL_MATERIAL_NAME"],
+                        "TR_GR_DETAIL_MATERIAL_NAME" => $open_balance[$key]["TR_GR_DETAIL_MATERIAL_NAME"],
                         "LG_MATERIAL_UOM" => $issued_balance[$i]["LG_MATERIAL_UOM"],
                         "actual_qty" => "0",
                         "issued_qty" => $issued_balance[$i]["qty"]
@@ -670,8 +686,6 @@ class StockController extends Controller {
                     }
                 }
             }
-        } else {
-            $request->date = date("d-m-Y");
         }
         $dtkmnt = date("YmdHis");
         $file_name = "stock_report_detail_" . $request->plant_code . "_" . $request->sloc_code . "_" . $request->material_code . "_" . $dtkmnt . ".xlsx";
@@ -693,26 +707,27 @@ class StockController extends Controller {
         $id = 1;
         for ($i = 0; $i < count($open_balance); $i++) {
             $row = $open_balance[$i];
-            $mat_name = '';
-            $gi_details = $open_balance[$i]['gr_detail'];
-            if (!empty($gi_details[0])) {
-                $mat_name = $gi_details[0]['TR_GR_DETAIL_MATERIAL_NAME'];
-            }
-            foreach ($gi_details as $gr_detail) {
-                $sheet->setCellValue('A' . ($counter), $open_balance[$i]["TR_GR_DETAIL_SLOC"]);
-                $sheet->setCellValue('B' . ($counter), $open_balance[$i]["LG_MATERIAL_CODE"]);
-                $sheet->setCellValue('C' . ($counter), $mat_name);
-                $sheet->setCellValue('D' . ($counter), number_format(($open_balance[$i]["actual_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-                $sheet->setCellValue('E' . ($counter), number_format(($open_balance[$i]["receipt_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-                $sheet->setCellValue('F' . ($counter), number_format(abs($open_balance[$i]["issued_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-                $sheet->setCellValue('G' . ($counter), number_format(($open_balance[$i]["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-                $sheet->setCellValue('H' . ($counter), $gr_detail["TR_GR_DETAIL_SAP_BATCH"]);
-                $sheet->setCellValue('I' . ($counter), convert_to_web_dmy($gr_detail["TR_GR_DETAIL_EXP_DATE"]));
-                $sheet->setCellValue('J' . ($counter), number_format($gr_detail["TR_GR_DETAIL_LEFT_QTY"], 2) . " " . $gr_detail["TR_GR_DETAIL_BASE_UOM"]);
+                $sloc = (empty($row["TR_GR_DETAIL_SLOC"]) ? "" : $row["TR_GR_DETAIL_SLOC"]);
+                $sheet->setCellValue('A' . ($counter), $sloc);
+                $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
+                $sheet->setCellValue('C' . ($counter), $row['TR_GR_DETAIL_MATERIAL_NAME']);
+                $sheet->setCellValue('D' . ($counter), number_format(($row["actual_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('E' . ($counter), number_format(($row["receipt_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('F' . ($counter), number_format(abs($row["issued_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('G' . ($counter), number_format(($row["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
+
+                if (empty($row['gi_details'])) {
+                    
+                } else {
+                    $gr_detail0 = $row['gi_details'][0];
+                    $sheet->setCellValue('H' . ($counter), $gr_detail0["TR_GR_DETAIL_SAP_BATCH"]);
+                    $sheet->setCellValue('I' . ($counter), convert_to_web_dmy($gr_detail0["TR_GR_DETAIL_EXP_DATE"]));
+                    $sheet->setCellValue('J' . ($counter), number_format($gr_detail0["TR_GR_DETAIL_LEFT_QTY"], 2) . " " . $gr_detail0["TR_GR_DETAIL_BASE_UOM"]);
+                }
                 $counter++;
                 $id++;
-            }
         }
+
         $writer = new Xlsx($spreadsheet);
         $writer->save($file_name_url);
         $headers = [
