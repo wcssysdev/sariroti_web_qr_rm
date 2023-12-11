@@ -618,6 +618,9 @@ class GoodReceiptController extends Controller
 
     public function scan_qr(Request $request)
     {
+        /**
+         * mau ditambah sum(left qty) yg material code dan left qty > 0
+         */
         $gr_detail_data = std_get([
             "select" => ["*"],
             "table_name" => "TR_GR_DETAIL",

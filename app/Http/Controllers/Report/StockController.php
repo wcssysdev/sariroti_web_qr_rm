@@ -554,10 +554,13 @@ class StockController extends Controller {
                     abort(404);
                 }
             }
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->start_date), $request->sloc_code, $request->material_code, TRUE);
-            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date), $request->sloc_code, $request->material_code, TRUE);
-            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date), $request->sloc_code, $request->material_code, TRUE);
-            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->end_date), $request->sloc_code, $request->material_code);
+            $sdate = html_entity_decode($request->start_date);
+            $edate = html_entity_decode($request->end_date);
+            
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, TRUE);
+            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
+            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
+            $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($edate), $request->sloc_code, $request->material_code);
             for ($i = 0; $i < count($receipt_balance); $i++) {
                 $key = array_search($receipt_balance[$i]["LG_MATERIAL_CODE"], array_column($open_balance, 'LG_MATERIAL_CODE'));
                 if ($key !== false) {
@@ -633,6 +636,7 @@ class StockController extends Controller {
             }
             $sdate = html_entity_decode($request->start_date);
             $edate = html_entity_decode($request->end_date);
+            
             $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, TRUE);
             $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
             $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);

@@ -85,9 +85,20 @@ $(function () {
                     <td style="text-align:right; padding: 5px;">{{ number_format($gr_detail0["TR_GR_DETAIL_LEFT_QTY"], 2)." ".$gr_detail0["TR_GR_DETAIL_BASE_UOM"] }}</td>
                     @endif
                     @else
+                    @if(empty($row["gr_detail"]))
                     <td style="text-align:center; padding: 5px;"></td>
                     <td style="text-align:center; padding: 5px;"></td>
                     <td style="text-align:center; padding: 5px;"></td>
+                    @else
+                    @php
+                    dd($gr_detail0);
+                    $gr_detail0 = $row["gr_detail"][0];
+                    unset($row["gr_detail"][0]);
+                    @endphp
+                    <td style="text-align:center; padding: 5px;">{{ $gr_detail0["TR_GR_DETAIL_SAP_BATCH"] }}</td>
+                    <td style="text-align:center; padding: 5px;">{{ convert_to_web_dmy($gr_detail0["TR_GR_DETAIL_EXP_DATE"]) }}</td>
+                    <td style="text-align:right; padding: 5px;">{{ number_format($gr_detail0["TR_GR_DETAIL_LEFT_QTY"], 2)." ".$gr_detail0["TR_GR_DETAIL_BASE_UOM"] }}</td>
+                    @endif
                     @endif
                 </tr>
 <!--                @if($row["gr_detail"])
