@@ -808,7 +808,7 @@ class GoodsController extends Controller {
             foreach ($materials as $row) {
                 $materials_adj[] = [
                     "id" => $row["id"],
-                    "text" => $row["text"]
+                    "text" => $row["id"] . " - " . $row["text"]
                 ];
             }
             return response()->json([
@@ -959,7 +959,7 @@ class GoodsController extends Controller {
             foreach ($materials as $row) {
                 $materials_adj[] = [
                     "id" => $row["id"],
-                    "text" => $row["text"]
+                    "text" => $row["id"] . " - " . $row["text"]
                 ];
             }
             return response()->json([
