@@ -330,10 +330,10 @@ class AddController extends Controller {
             "detail_data" => $detail_data,
             "po_number" => $request->gi_po_number,
             "temp_material" => $lock_data,
-            "header_posting_date" => $request->TR_GI_HEADER_PSTG_DATE,
-            "header_bill_of_landing" => $request->TR_GI_HEADER_BOL,
+            "header_posting_date" => $request->header_posting_date,
+            "header_bill_of_landing" => $request->header_bill_of_landing,
             "header_recipient" => $request->header_recipient,
-            "header_note" => $request->TR_GI_HEADER_TXT,
+            "header_note" => $request->header_note,
             "movement_code" => $movement_code
         ]);
     }
@@ -496,7 +496,8 @@ class AddController extends Controller {
                     'gi_po_number' => $request->po_number,
                     'header_posting_date' => $request->TR_GI_HEADER_PSTG_DATE,
                     'header_bill_of_landing' => $request->TR_GI_HEADER_BOL,
-                    'header_note' => $request->header_note,
+                    "header_recipient" => $request->header_recipient,
+                    "header_note" => $request->TR_GI_HEADER_TXT,
         ]);
     }
 

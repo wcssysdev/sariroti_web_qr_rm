@@ -226,8 +226,8 @@ class AddController extends Controller {
             "header_cost_center" => $request->header_cost_center,
             "header_gl_account" => $request->header_gl_account,
             "header_posting_date" => $request->header_posting_date,
-            "header_bill_of_landing" => $request->TR_TP_HEADER_BOL,
-            "header_note" => $request->TR_TP_HEADER_TXT,
+            "header_bill_of_landing" => $request->header_bill_of_landing,
+            "header_note" => $request->header_note,
             "cost_center" => $cost_center,
             "gl_account" => $gl_account
         ]);
@@ -476,7 +476,9 @@ class AddController extends Controller {
                     'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
                     'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
                     'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
-                    'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
+                    'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE,
+                    "header_bill_of_landing" => $request->TR_TP_HEADER_BOL,
+                    "header_note" => $request->TR_TP_HEADER_TXT,
         ]);
     }
 
@@ -556,7 +558,9 @@ class AddController extends Controller {
                     'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
                     'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
                     'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
-                    'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
+                    'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE,
+                    "header_bill_of_landing" => $request->TR_TP_HEADER_BOL,
+                    "header_note" => $request->TR_TP_HEADER_TXT,
         ]);
     }
 
@@ -1027,7 +1031,7 @@ class AddController extends Controller {
              * Fitur TP Plan dinon-aktifkan
              * Save TP langsung create CSV untuk siap posting
              */
-            if (in_array($request->TR_TP_HEADER_MVT_CODE, ['511', '311','411'])) {
+            if (in_array($request->TR_TP_HEADER_MVT_CODE, ['511', '311', '411'])) {
                 generate_tp_csv($tp_id, session("plant"));
             }
         }
