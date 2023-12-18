@@ -181,15 +181,21 @@ $(function () {
 
     $("#save_material_btn").click(function (e) {
         e.preventDefault();
-        let status = true
+        let sloc = $('select[name="TR_TP_DETAIL_SLOC"]').val();
+        
+        let status = true;
+        if (typeof sloc == "undefined" || sloc == "" || sloc == '0' || sloc == null) {
+            status = false;
+            alert("Destination S.Loc is Required");
+        }
         if (typeof $("#material_select2").val() == "undefined" || $("#material_select2").val() == "") {
             status = false
-            alert("Material Code is Required")
+            alert("Material Code is Required");
         }
 
         if (typeof $("#expired_date").val() == "undefined" || $("#expired_date").val() == "") {
-            status = false
-            alert("Expired Date is Required")
+            status = false;
+            alert("Expired Date is Required");
         }
 
         if (typeof $("#qty").val() == "undefined" || $("#qty").val() == "") {
@@ -199,7 +205,9 @@ $(function () {
 
         if (status === true) {
             $('#form').attr('action', $("#form").data("save-material-url"))
-            $('#form').submit()
+            $('#form').submit();
+        }else{
+            return false;
         }
     })
 
@@ -233,7 +241,9 @@ $(function () {
 
         if (status === true) {
             $('#form').attr('action', $("#form").data("save-material-y21-url"))
-            $('#form').submit()
+            $('#form').submit();
+        }else{
+            return false;
         }
     })
 

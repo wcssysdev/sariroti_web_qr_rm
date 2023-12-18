@@ -141,7 +141,7 @@
                                                     <input type="text" class="form-control" readonly id="sloc_input">
                                                 </div>
                                                 <div class="col-lg-6">
-                                                    <label>Destination Storage Location:</label>
+                                                    <label>Destination Storage Location:<span style="color:red">*</span></label>
                                                     <select class="form-control" id="sloc_select2"
                                                         name="TR_TP_DETAIL_SLOC">
                                                         <option></option>
