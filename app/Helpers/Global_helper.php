@@ -562,6 +562,10 @@ function generate_gi_csv($gi_header_id, $plant_code) {
         ],
         "order_by" => [
             [
+                "field" => "TR_PO_DETAIL_MATERIAL_LINE_NUM",
+                "type" => "ASC",
+            ],
+            [
                 "field" => "TR_GI_SAPDETAIL_SAPLINE_ID",
                 "type" => "ASC",
             ]

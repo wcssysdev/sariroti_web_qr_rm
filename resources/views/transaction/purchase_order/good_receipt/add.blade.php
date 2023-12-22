@@ -108,7 +108,7 @@
                             </div>
                         </div>
                         <div class="col-lg-2">
-                            <label>Is Adjustment GR?: <span style="color:red">*</span></label>
+                            <label>Is Adjustment GR?: </label>
                             <div class="checkbox-list">
                                 <label class="checkbox">
                                 <input type="checkbox" name="TR_GR_HEADER_IS_ADJUSTMENT">
