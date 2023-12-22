@@ -605,6 +605,7 @@ class AddController extends Controller {
         ]);
 
         $plant_code = $po_header["TR_PO_HEADER_SUP_PLANT"];
+        $plant_code_file = $po_header["TR_PO_HEADER_SUP_PLANT"];
         if ($po_header["TR_PO_HEADER_TYPE"] == "ZSTO") {
             $plant_code = $po_detail["TR_PO_DETAIL_PLANT_RCV"];
         }
@@ -786,6 +787,8 @@ class AddController extends Controller {
                     "TR_GI_SAPDETAIL_SAP_BATCH" => $row["TR_GR_DETAIL_SAP_BATCH"],
                     "TR_GI_SAPDETAIL_GI_QTY" => $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
                     "TR_GI_SAPDETAIL_GI_UOM" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
+                    "TR_GI_SAPDETAIL_MOBILE_QTY" => $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
+                    "TR_GI_SAPDETAIL_MOBILE_UOM" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
                     "TR_GI_SAPDETAIL_BASE_QTY" => $row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
                     "TR_GI_SAPDETAIL_BASE_UOM" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],
                     "TR_GI_SAPDETAIL_SLOC" => $row["TR_GR_DETAIL_SLOC"],
@@ -841,7 +844,7 @@ class AddController extends Controller {
          * Fitur GI Plan dinon-aktifkan
          * Save GI langsung create CSV untuk siap posting
          */
-        generate_gi_csv($gi_id, $plant_code);
+        generate_gi_csv($gi_id, $plant_code_file);
 
         return response()->json([
                     'message' => "GI Successfully Created"

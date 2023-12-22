@@ -243,11 +243,12 @@ class DetailController extends Controller
 
             if ($gi_detail_data != NULL) {
                 foreach ($gi_detail_data as $row) {
+                    $qty_mobile = empty($row["TR_GI_SAPDETAIL_MOBILE_QTY"])? 0 : $row["TR_GI_SAPDETAIL_MOBILE_QTY"];
                     std_update([
                         "table_name" => "TR_GR_DETAIL",
                         "where" => ["TR_GR_DETAIL_ID" => $row["TR_GI_SAPDETAIL_GR_DETAIL_ID"]],
                         "data" => [
-                            "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" + '.$row["TR_GI_SAPDETAIL_MOBILE_QTY"])
+                            "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" + '.$qty_mobile)
                         ]
                     ]);
 
