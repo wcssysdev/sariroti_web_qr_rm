@@ -159,7 +159,7 @@ class AddController extends Controller
             "type" => "required|in:GR,GI,TP",
             "doc_number" => "required|max:255",
             "selected_ids" => "required",
-            "TR_CANCELLATION_MVT_POSTING_DATE" => "required:max:10"
+            "TR_CANCELLATION_MVT_POSTING_DATE" => "required|max:10"
         ]);
 
         $attributeNames = [

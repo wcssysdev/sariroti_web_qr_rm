@@ -575,6 +575,7 @@ class AddController extends Controller {
                     'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
                     'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
                     'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
+                    "header_note" => $request->TR_TP_HEADER_TXT,
                     'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
         ]);
     }
@@ -590,6 +591,7 @@ class AddController extends Controller {
                     'header_movement_code' => $request->TR_TP_HEADER_MVT_CODE,
                     'header_cost_center' => $request->TR_TP_COST_CENTER_CODE,
                     'header_gl_account' => $request->TR_TP_GL_ACCOUNT_CODE,
+                    'header_note' => $request->TR_TP_HEADER_TXT,
                     'header_posting_date' => $request->TR_TP_HEADER_PSTG_DATE
         ]);
     }

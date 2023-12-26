@@ -498,7 +498,7 @@ class ReceiveSapResponse extends Command
                                     [
                                         "field_name" => "TR_TP_HEADER_SAP_YEAR",
                                         "operator" => "=",
-                                        "value" => $cancellation_header["TR_CANCELLATION_MVT_MATDOC_YEAR"]
+                                        "value" => $cancellation_header["TR_CANCELLATION_MVT_TR_DOC_YEAR"]
                                     ],
                                 ],
                                 "first_row" => true
