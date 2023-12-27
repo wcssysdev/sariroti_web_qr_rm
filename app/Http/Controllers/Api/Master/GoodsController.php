@@ -691,11 +691,6 @@ class GoodsController extends Controller {
                     "value" => "ERROR"
                 ],
                 [
-                    "field_name" => "TR_GR_HEADER_SAP_DOC",
-                    "operator" => "!=",
-                    "value" => "DATA CUT OFF"
-                ],
-                [
                     "field_name" => "TR_GR_HEADER_STATUS",
                     "operator" => "!=",
                     "value" => "PENDING"
@@ -784,11 +779,6 @@ class GoodsController extends Controller {
                     "value" => null
                 ],
                 [
-                    "field_name" => "TR_GR_HEADER_SAP_DOC",
-                    "operator" => "!=",
-                    "value" => "DATA CUT OFF"
-                ],                
-                [
                     "field_name" => "TR_GR_DETAIL_LOCK_ID",
                     "operator" => "=",
                     "value" => null
@@ -874,11 +864,6 @@ class GoodsController extends Controller {
                     "operator" => "!=",
                     "value" => null
                 ],
-                [
-                    "field_name" => "TR_GR_HEADER_SAP_DOC",
-                    "operator" => "!=",
-                    "value" => "DATA CUT OFF"
-                ],                
                 [
                     "field_name" => "TR_GR_DETAIL_LOCK_ID",
                     "operator" => "=",
