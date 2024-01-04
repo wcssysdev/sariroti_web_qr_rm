@@ -421,7 +421,7 @@ class GoodReceiptController extends Controller
 
             if ($master_material == null) {
                 return response()->json([
-                    'message' => "Material Master Not Found"
+                    'message' => "Material Master Not Found [$row[material_code]]"
                 ], 500);
             }
         }
@@ -525,7 +525,7 @@ class GoodReceiptController extends Controller
             
             if ($master_material == NULL) {
                 return response()->json([
-                    'message' => "Material Master Not Found, but GR header already saved, please contact your admin"
+                    'message' => "Material Master Not Found [$row[material_code]], but GR header already saved, please contact your admin"
                 ],500);
             }
 

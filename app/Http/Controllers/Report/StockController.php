@@ -252,6 +252,7 @@ class StockController extends Controller {
                     "value" => false
                 ],
             ],
+            "dump" => FALSE,
             "order_by" => [
                 [
                     "field" => "TR_GR_DETAIL_MATERIAL_CODE",
@@ -278,6 +279,7 @@ class StockController extends Controller {
             ];
         }
         $data = std_get($statement);
+//        echo $this->db->last_query();die();
         return $data;
     }
 
@@ -560,6 +562,7 @@ class StockController extends Controller {
             $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, TRUE);
             $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
             $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
+
             $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($edate), $request->sloc_code, $request->material_code);
             for ($i = 0; $i < count($receipt_balance); $i++) {
                 $key = array_search($receipt_balance[$i]["LG_MATERIAL_CODE"], array_column($open_balance, 'LG_MATERIAL_CODE'));
