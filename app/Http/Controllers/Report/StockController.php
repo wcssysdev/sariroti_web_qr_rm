@@ -644,7 +644,6 @@ class StockController extends Controller {
             $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
             $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
             $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($edate), $request->sloc_code, $request->material_code);
-
             for ($i = 0; $i < count($receipt_balance); $i++) {
                 $key = array_search($receipt_balance[$i]["LG_MATERIAL_CODE"], array_column($open_balance, 'LG_MATERIAL_CODE'));
                 if ($key !== false) {
@@ -723,10 +722,10 @@ class StockController extends Controller {
                 $sheet->setCellValue('F' . ($counter), number_format(abs($row["issued_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
                 $sheet->setCellValue('G' . ($counter), number_format(($row["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
 
-                if (empty($row['gi_details'])) {
+                if (empty($row['gr_detail'])) {
                     
                 } else {
-                    $gr_detail0 = $row['gi_details'][0];
+                    $gr_detail0 = $row['gr_detail'][0];
                     $sheet->setCellValue('H' . ($counter), $gr_detail0["TR_GR_DETAIL_SAP_BATCH"]);
                     $sheet->setCellValue('I' . ($counter), convert_to_web_dmy($gr_detail0["TR_GR_DETAIL_EXP_DATE"]));
                     $sheet->setCellValue('J' . ($counter), number_format($gr_detail0["TR_GR_DETAIL_LEFT_QTY"], 2) . " " . $gr_detail0["TR_GR_DETAIL_BASE_UOM"]);
