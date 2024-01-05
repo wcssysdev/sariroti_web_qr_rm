@@ -548,13 +548,13 @@ class ReceiveSapResponse extends Command
                                 ]);
 
                                 insert_material_log([
-                                    "material_code" => $gr_detail["TR_GR_DETAIL_MATERIAL_CODE"],
-                                    "plant_code" => $gr_detail["TR_GR_DETAIL_UNLOADING_PLANT"],
-                                    "posting_date" => $gr_detail["TR_GR_HEADER_PSTG_DATE"],
-                                    "movement_type" => $gr_detail["TR_GR_HEADER_MVT_CODE"],
-                                    "gr_detail_id" => $gr_detail["TR_GR_DETAIL_ID"],
-                                    "base_qty" => -$gr_detail["TR_GR_DETAIL_BASE_QTY"],
-                                    "base_uom" => $gr_detail["TR_GR_DETAIL_BASE_UOM"],
+                                    "material_code" => $row["TR_TP_DETAIL_MATERIAL_CODE"],
+                                    "plant_code" => $tp_header["TR_TP_HEADER_PLANT_CODE"],
+                                    "posting_date" => $tp_header["TR_TP_HEADER_PSTG_DATE"],
+                                    "movement_type" => $tp_header["TR_TP_HEADER_MVT_CODE"],
+                                    "gr_detail_id" => $row["TR_TP_DETAIL_GR_DETAIL_ID"],
+                                    "base_qty" => -($row["TR_TP_DETAIL_MOBILE_QTY"]),
+                                    "base_uom" => $row["TR_TP_DETAIL_BASE_UOM"],
                                     "created_by" => "0"
                                 ]);
                             }
