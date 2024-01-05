@@ -884,6 +884,14 @@ class GoodsController extends Controller {
                 [
                     "field" => "TR_GR_DETAIL_MATERIAL_NAME",
                     "type" => "ASC",
+                ],
+                [
+                    "field" => "TR_GR_DETAIL_EXP_DATE",
+                    "type" => "ASC",
+                ],
+                [
+                    "field" => "TR_GR_DETAIL_SAP_BATCH",
+                    "type" => "ASC",
                 ]
             ],
             "distinct" => true,
