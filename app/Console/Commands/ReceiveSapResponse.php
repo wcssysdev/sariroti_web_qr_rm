@@ -227,6 +227,28 @@ class ReceiveSapResponse extends Command
                             ],
                             "first_row" => true
                         ]);
+                            /**
+                             * WCS Jati
+                             * Jan 2024
+                             * Enable partial cancellation
+                             */                        
+                        $cancellation_details = std_get([
+                            "select" => ["TR_CANCELATION_MVT_DETAIL_TRANSACTION_DETAIL_ID as SAPLINE_ID","TR_CANCELATION_MVT_DETAIL_TRANSACTION_DETAIL_IDS as TRX_ID"],
+                            "table_name" => "TR_CANCELATION_MVT_DETAIL",
+                            "where" => [
+                                [
+                                    "field_name" => "TR_CANCELATION_MVT_DETAIL_HEADER_ID",
+                                    "operator" => "=",
+                                    "value" => $cancellation_header["TR_CANCELLATION_MVT_ID"]
+                                ]
+                            ],
+                            "first_row" => false
+                        ]);
+                        
+                        $detail_ids = [];
+                        foreach ($cancellation_details as $row) {
+                            $detail_ids[] = $row['TRX_ID'];
+                        }
     
                         if ($cancellation_header["TR_CANCELLATION_MVT_SAP_CODE"] == "102") {
                             //GR Doc
@@ -247,16 +269,17 @@ class ReceiveSapResponse extends Command
                                 ],
                                 "first_row" => true
                             ]);
-    
+                            /**
+                             * WCS Jati
+                             * Jan 2024
+                             * Enable partial cancellation
+                             */
                             $gr_detail = std_get([
                                 "select" => ["*"],
                                 "table_name" => "TR_GR_DETAIL",
-                                "where" => [
-                                    [
-                                        "field_name" => "TR_GR_DETAIL_HEADER_ID",
-                                        "operator" => "=",
-                                        "value" => $gr_header["TR_GR_HEADER_ID"]
-                                    ]
+                                "where_in" => [
+                                    "field_name" => "TR_GR_DETAIL_ID",
+                                    "ids" => $detail_ids
                                 ],
                                 "first_row" => false
                             ]);                            
@@ -333,17 +356,18 @@ class ReceiveSapResponse extends Command
                                 ],
                                 "first_row" => true
                             ]);
-    
+                            /**
+                             * WCS Jati
+                             * Jan 2024
+                             * Enable partial cancellation
+                             */    
                             $gi_detail = std_get([
                                 "select" => ["*"],
                                 "table_name" => "TR_GI_SAPDETAIL",
-                                "where" => [
-                                    [
-                                        "field_name" => "TR_GI_SAPDETAIL_SAPHEADER_ID",
-                                        "operator" => "=",
-                                        "value" => $gi_header["TR_GI_SAPHEADER_ID"]
-                                    ]
-                                ],
+                                "where_in" => [
+                                    "field_name" => "TR_GI_SAPDETAIL_ID",
+                                    "ids" => $detail_ids
+                                ],                                
                                 "first_row" => false
                             ]);
 
@@ -398,19 +422,20 @@ class ReceiveSapResponse extends Command
                                 "first_row" => true
                             ]);
     
+                            /**
+                             * WCS Jati
+                             * Jan 2024
+                             * Enable partial cancellation
+                             */
                             $tp_detail = std_get([
                                 "select" => ["*"],
                                 "table_name" => "TR_TP_DETAIL",
-                                "where" => [
-                                    [
-                                        "field_name" => "TR_TP_DETAIL_TP_HEADER_ID",
-                                        "operator" => "=",
-                                        "value" => $tp_header["TR_TP_HEADER_ID"]
-                                    ]
-                                ],
+                                "where_in" => [
+                                    "field_name" => "TR_TP_DETAIL_ID",
+                                    "ids" => $detail_ids
+                                ],                                
                                 "first_row" => false
                             ]);
-
                             foreach ($tp_detail as $row) {
                                 std_update([
                                     "table_name" => "TR_GR_DETAIL",

@@ -885,7 +885,7 @@ class AddController extends Controller {
                         "material_code" => $gr_detail_new_gr["TR_GR_DETAIL_MATERIAL_CODE"],
                         "plant_code" => $gr_detail_new_gr["TR_GR_DETAIL_UNLOADING_PLANT"],
                         "posting_date" => $converted_date,
-                        "movement_type" => $gr_detail_new_gr["TR_GR_HEADER_MVT_CODE"],
+                        "movement_type" => $request->TR_TP_HEADER_MVT_CODE,
                         "gr_detail_id" => $gr_detail_new_gr["TR_GR_DETAIL_ID"],
                         "base_qty" => -$row["TR_GR_DETAIL_LOCK_BOOKED_QTY"],
                         "base_uom" => $row["TR_GR_DETAIL_LOCK_BOOKED_UOM"],

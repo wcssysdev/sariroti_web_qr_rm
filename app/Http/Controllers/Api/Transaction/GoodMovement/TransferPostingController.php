@@ -498,8 +498,8 @@ class TransferPostingController extends Controller {
         $validate = Validator::make($request->all(), [
 //            "TR_TP_HEADER_ID" => "required|max:255",
                     "TR_TP_HEADER_PSTG_DATE" => "required|max:255",
-                    "TR_TP_HEADER_TXT" => "required|max:255",
-                    "TR_TP_HEADER_BOL" => "required|max:255",
+                    "TR_TP_HEADER_TXT" => "required|max:255"
+//                    "TR_TP_HEADER_BOL" => "required|max:255",
         ]);
 
         $attributeNames = [
