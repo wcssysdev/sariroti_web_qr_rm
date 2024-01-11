@@ -532,13 +532,10 @@ class ReceiveSapResponse extends Command
                             $tp_detail = std_get([
                                 "select" => ["*"],
                                 "table_name" => "TR_TP_DETAIL",
-                                "where" => [
-                                    [
-                                        "field_name" => "TR_TP_DETAIL_TP_HEADER_ID",
-                                        "operator" => "=",
-                                        "value" => $tp_header["TR_TP_HEADER_ID"]
-                                    ]
-                                ],
+                                "where_in" => [
+                                    "field_name" => "TR_TP_DETAIL_ID",
+                                    "ids" => $detail_ids
+                                ],                                
                                 "first_row" => false
                             ]);
 

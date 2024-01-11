@@ -222,6 +222,8 @@ class TransferPostingController extends Controller {
             $row["TR_TP_DETAIL_SAPLINE_ID"] = $count;
             $row["TR_TP_DETAIL_CREATED_BY"] = $posting_data['TR_TP_HEADER_CREATED_BY'];
             $row["TR_TP_DETAIL_CREATED_TIMESTAMP"] = $posting_data['TR_TP_HEADER_CREATED_TIMESTAMP'];
+            $row["TR_TP_DETAIL_QR_CODE_NUMBER"] = $qr_code_temp;
+            $row["TR_TP_DETAIL_Y21_GR_REF"] = $y21_code_temp;
 
             unset($row['photo']);
             unset($row['photoTemp']);
@@ -288,8 +290,8 @@ class TransferPostingController extends Controller {
                     "TR_GR_DETAIL_MATERIAL_CODE" => $row["TR_TP_DETAIL_MATERIAL_CODE"],
                     "TR_GR_DETAIL_MATERIAL_NAME" => $row["TR_TP_DETAIL_MATERIAL_NAME"],
                     "TR_GR_DETAIL_SAP_BATCH" => $row["TR_TP_DETAIL_SAP_BATCH"],
-                    "TR_GR_DETAIL_QTY" => NULL,
-                    "TR_GR_DETAIL_UOM" => NULL,
+                    "TR_GR_DETAIL_QTY" => $row["TR_TP_DETAIL_MOBILE_QTY"],
+                    "TR_GR_DETAIL_UOM" => $row["TR_TP_DETAIL_MOBILE_UOM"],
                     "TR_GR_DETAIL_BASE_QTY" => $row["TR_TP_DETAIL_MOBILE_QTY"],
                     "TR_GR_DETAIL_BASE_UOM" => $row["TR_TP_DETAIL_MOBILE_UOM"],
                     "TR_GR_DETAIL_LEFT_QTY" => $row["TR_TP_DETAIL_MOBILE_QTY"],
@@ -410,7 +412,17 @@ class TransferPostingController extends Controller {
             if (!$gr_detail_new_gr) {
                 continue;
             }
+                if ($tp_detail["TR_TP_DETAIL_MOBILE_QTY"] < $tp_detail["TR_TP_DETAIL_BASE_QTY"]) {
+//                    $difference = $tp_detail["TR_TP_DETAIL_BASE_QTY"] - $tp_detail["TR_TP_DETAIL_MOBILE_QTY"];
 
+                    std_update([
+                        "table_name" => "TR_GR_DETAIL",
+                        "where" => ["TR_GR_DETAIL_ID" => $tp_detail["TR_TP_DETAIL_GR_DETAIL_ID"]],
+                        "data" => [
+                            "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" - ' . $tp_detail["TR_TP_DETAIL_MOBILE_QTY"])
+                        ]
+                    ]);
+                }
             insert_material_log([
                 "material_code" => $gr_detail_new_gr["TR_GR_DETAIL_MATERIAL_CODE"],
                 "plant_code" => $gr_detail_new_gr["TR_GR_DETAIL_UNLOADING_PLANT"],
@@ -458,8 +470,8 @@ class TransferPostingController extends Controller {
                         "TR_GR_DETAIL_MATERIAL_CODE" => $gr_detail_new_gr["TR_GR_DETAIL_MATERIAL_CODE"],
                         "TR_GR_DETAIL_MATERIAL_NAME" => $gr_detail_new_gr["TR_GR_DETAIL_MATERIAL_NAME"],
                         "TR_GR_DETAIL_SAP_BATCH" => $gr_detail_new_gr["TR_GR_DETAIL_SAP_BATCH"],
-                        "TR_GR_DETAIL_QTY" => NULL,
-                        "TR_GR_DETAIL_UOM" => NULL,
+                        "TR_GR_DETAIL_QTY" => $tp_detail["TR_TP_DETAIL_MOBILE_QTY"],
+                        "TR_GR_DETAIL_UOM" => $tp_detail["TR_TP_DETAIL_MOBILE_UOM"],
                         "TR_GR_DETAIL_BASE_QTY" => $tp_detail["TR_TP_DETAIL_MOBILE_QTY"],
                         "TR_GR_DETAIL_BASE_UOM" => $tp_detail["TR_TP_DETAIL_MOBILE_UOM"],
                         "TR_GR_DETAIL_LEFT_QTY" => $tp_detail["TR_TP_DETAIL_MOBILE_QTY"],
