@@ -353,6 +353,8 @@ class TransferPostingController extends Controller {
             }
             $row['TR_TP_DETAIL_PHOTO'] = $filename;
             $row["TR_TP_DETAIL_SAPLINE_ID"] = $count;
+            $row['TR_TP_DETAIL_QTY'] = $row['TR_TP_DETAIL_MOBILE_QTY'];
+            $row['TR_TP_DETAIL_UOM'] = $row['TR_TP_DETAIL_MOBILE_UOM'];            
             $row["TR_TP_DETAIL_CREATED_BY"] = $posting_data['TR_TP_HEADER_CREATED_BY'];
             $row["TR_TP_DETAIL_CREATED_TIMESTAMP"] = $posting_data['TR_TP_HEADER_CREATED_TIMESTAMP'];
 

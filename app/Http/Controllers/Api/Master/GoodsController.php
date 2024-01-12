@@ -931,8 +931,8 @@ class GoodsController extends Controller {
                 $select2 = array_merge($select2, [
                     [
                         "id" => $row["TR_GR_DETAIL_ID"],
-                        "text" => $row["TR_GR_DETAIL_ID"] . " | " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $batch . " | " . $row["TR_GR_DETAIL_EXP_DATE"] .' | '.$row['TR_GR_DETAIL_SLOC'],
-                        "itemSplit" => $row["TR_GR_DETAIL_ID"] . "|" . $row["TR_GR_DETAIL_LEFT_QTY"] . " " . $row["TR_GR_DETAIL_BASE_UOM"] . "|" . $batch . "|" . $row["TR_GR_DETAIL_EXP_DATE"] .'|'.$row['TR_GR_DETAIL_SLOC']
+                        "text" => $row["TR_GR_DETAIL_ID"] . " | " . number_format($row["TR_GR_DETAIL_LEFT_QTY"]) . " " . $row["TR_GR_DETAIL_BASE_UOM"] . " | " . $batch . " | " . $row["TR_GR_DETAIL_EXP_DATE"] . ' | ' . $row['TR_GR_DETAIL_SLOC'],
+                        "itemSplit" => $row["TR_GR_DETAIL_ID"] . "|" . $row["TR_GR_DETAIL_LEFT_QTY"] . " " . $row["TR_GR_DETAIL_BASE_UOM"] . "|" . $batch . "|" . $row["TR_GR_DETAIL_EXP_DATE"] . '|' . $row['TR_GR_DETAIL_SLOC']
                     ]
                 ]);
             }
@@ -983,6 +983,13 @@ class GoodsController extends Controller {
     }
 
     public function get_material_batch_y21(Request $request) {
+        if (empty($request->material_code)) {
+            return response()->json([
+                        "status" => "ERROR",
+                        "data" => [],
+                        "base_uom" => ""
+                            ], 200);
+        }
         $plant_code = $request->user_data->plant;
         $material = std_get([
             "select" => ["MA_MATL_ID as id", "MA_MATL_BATCH as text"],
@@ -1025,10 +1032,14 @@ class GoodsController extends Controller {
             "first_row" => true
         ]);
 
+        $uom = "";
+        if ($base_material) {
+            $uom = $base_material["MA_MATL_UOM"];
+        }
         return response()->json([
                     "status" => "OK",
                     "data" => $material,
-                    "base_uom" => $base_material["MA_MATL_UOM"]
+                    "base_uom" => $uom
                         ], 200);
     }
 }
