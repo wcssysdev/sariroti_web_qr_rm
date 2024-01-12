@@ -199,7 +199,7 @@ class ViewController extends Controller
                         "table_name" => "TR_GR_DETAIL",
                         "where" => ["TR_GR_DETAIL_ID" => $row["TR_TP_DETAIL_GR_DETAIL_ID"]],
                         "data" => [
-                            "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" + '.$row["TR_TP_DETAIL_BASE_QTY"])
+                            "TR_GR_DETAIL_LEFT_QTY" => DB::raw('"TR_GR_DETAIL_LEFT_QTY" + '.$row["TR_TP_DETAIL_MOBILE_QTY"])
                         ]
                     ]);
 
@@ -209,8 +209,8 @@ class ViewController extends Controller
                         "posting_date" => $tp_header["TR_TP_HEADER_PSTG_DATE"],
                         "movement_type" => $tp_header["TR_TP_HEADER_MVT_CODE"],
                         "gr_detail_id" => $row["TR_TP_DETAIL_GR_DETAIL_ID"],
-                        "base_qty" => $row["TR_TP_DETAIL_BASE_QTY"],
-                        "base_uom" => $row["TR_TP_DETAIL_BASE_UOM"],
+                        "base_qty" => $row["TR_TP_DETAIL_MOBILE_QTY"],
+                        "base_uom" => $row["TR_TP_DETAIL_MOBILE_UOM"],
                         "created_by" => "0"
                     ]);
 

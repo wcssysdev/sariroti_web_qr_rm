@@ -258,7 +258,7 @@ class DetailController extends Controller
                         "posting_date" => $gi_data["TR_GI_SAPHEADER_PSTG_DATE"],
                         "movement_type" => $gi_data["TR_GI_SAPHEADER_MVT_CODE"],
                         "gr_detail_id" => $row["TR_GI_SAPDETAIL_GR_DETAIL_ID"],
-                        "base_qty" => $row["TR_GI_SAPDETAIL_MOBILE_QTY"],
+                        "base_qty" => $qty_mobile,
                         "base_uom" => $row["TR_GI_SAPDETAIL_BASE_UOM"],
                         "created_by" => session("id")
                     ]);
