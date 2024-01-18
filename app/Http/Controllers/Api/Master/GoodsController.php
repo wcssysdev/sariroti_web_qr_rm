@@ -992,7 +992,7 @@ class GoodsController extends Controller {
         }
         $plant_code = $request->user_data->plant;
         $material = std_get([
-            "select" => ["MA_MATL_ID as id", "MA_MATL_BATCH as text"],
+            "select" => ["MA_MATL_BATCH as id", "MA_MATL_BATCH as text"],
             "table_name" => "MA_MATL",
             "where" => [
                 [

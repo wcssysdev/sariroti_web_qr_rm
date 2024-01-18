@@ -65,6 +65,11 @@ function get_gr_data($material_code, $plant_code, $batch = null) {
                 "value" => false
             ],
             [
+                "field_name" => "TR_GR_HEADER_IS_CANCELLED",
+                "operator" => "=",
+                "value" => false
+            ],
+            [
                 "field_name" => "TR_GR_DETAIL_IS_CANCELLED",
                 "operator" => "=",
                 "value" => false
