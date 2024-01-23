@@ -81,7 +81,7 @@ $(function () {
     <div class="card-body" id="printable">
         <table border="1" style="width:100%;" id="report_table">
             <tr>
-                <td style="text-align:center; padding: 5px;width:10%;"><b>Storage Location</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>SLoc</b></td>
                 <td style="text-align:center; padding: 5px;width:10%;"><b>Material Code</b></td>
                 <td style="text-align:center; padding: 5px;width:10%;"><b>Material Name</b></td>
                 <td style="text-align:center; padding: 5px;width:10%;"><b>Opening Qty</b></td>
@@ -92,17 +92,18 @@ $(function () {
             </tr>
             @foreach ($open_balance as $row)
             @php
-            if(empty($row["TR_GR_DETAIL_MATERIAL_NAME"])){
+            if(empty($row["mat_name"])){
             $matname = "";
             }else{
-            $matname = $row["TR_GR_DETAIL_MATERIAL_NAME"];
+            $matname = $row["mat_name"];
             }
             $sloc = "";
             if(!empty($row["TR_GR_DETAIL_SLOC"])){
-            $sloc = $row["TR_GR_DETAIL_SLOC"];
+                $sloc = $row["TR_GR_DETAIL_SLOC"];
+            }elseif(!empty($row["gr_detail"][0]["TR_GR_DETAIL_SLOC"])){
+                $sloc = $row["gr_detail"][0]["TR_GR_DETAIL_SLOC"];
             }
             $flag = 0;
-            $mat_name = '';
             @endphp
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $sloc }}</td>
@@ -113,7 +114,7 @@ $(function () {
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format(abs($row["issued_qty"]), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td style="text-align:right; padding: 5px;" rowspan="1">{{ number_format($row["closing_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td nowrap="nowrap" style="text-align:center; padding: 5px;">
-                    <a href="{{ route('stock_detail_report_view', ['plant_code' => $plant_selected,'sloc_code' => $sloc,'material_code' => $row['LG_MATERIAL_CODE'],'start_date' => $start_date,'end_date' => $end_date]) }}" class="btn btn-sm btn-clean btn-icon"> <i
+                    <a href="{{ route('stock_detail_report_view', ['plant_code' => $plant_selected,'sloc_code' => $sloc,'material_code' => $row['LG_MATERIAL_CODE'],'start_date' => ($start_date),'end_date' => ($end_date)]) }}" class="btn btn-sm btn-clean btn-icon"> <i
                             class="la la-eye"></i>
                     </a>
                 </td>                    

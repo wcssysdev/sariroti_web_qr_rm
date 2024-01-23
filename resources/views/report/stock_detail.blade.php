@@ -41,7 +41,7 @@ $(function () {
     <div class="card-body" id="printable">
         <table border="1" style="width:100%;" id="report_table">
             <tr>
-                <td style="text-align:center; padding: 5px;width:10%;"><b>Storage Location</b></td>
+                <td style="text-align:center; padding: 5px;width:10%;"><b>SLoc</b></td>
                 <td style="text-align:center; padding: 5px;width:10%;"><b>Material Code</b></td>
                 <td style="text-align:center; padding: 5px;width:10%;"><b>Material Name</b></td>
                 <td style="text-align:center; padding: 5px;width:10%;"><b>Opening Qty</b></td>
@@ -60,11 +60,21 @@ $(function () {
             if($rowcount < 1){
             $rowcount = 1;
             }
+            if(empty($row["TR_GR_DETAIL_SLOC"])){
+            $sloc = "";
+            }else{
+            $sloc = $row["TR_GR_DETAIL_SLOC"];
+            }
+            if(!empty($row["TR_GR_DETAIL_MATERIAL_NAME"])){
+            $matname = $row["TR_GR_DETAIL_MATERIAL_NAME"];
+            }else{
+            $matname = "";
+            }
             @endphp            
                 <tr>
-                    <td style="text-align:center; padding: 5px;" rowspan="{{$rowcount}}">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
+                    <td style="text-align:center; padding: 5px;" rowspan="{{$rowcount}}">{{ $sloc }}</td>
                     <td style="text-align:center; padding: 5px;" rowspan="{{$rowcount}}">{{ $row["LG_MATERIAL_CODE"] }}</td>
-                    <td style="text-align:center; padding: 5px;" rowspan="{{$rowcount}}">{{ $row["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
+                    <td style="text-align:center; padding: 5px;" rowspan="{{$rowcount}}">{{ $matname }}</td>
                     <td style="text-align:right; padding: 5px;" rowspan="{{$rowcount}}">{{ number_format($row["actual_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                     <td style="text-align:right; padding: 5px;" rowspan="{{$rowcount}}">{{ number_format($row["receipt_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                     <td style="text-align:right; padding: 5px;" rowspan="{{$rowcount}}">{{ number_format(abs($row["issued_qty"]), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
@@ -91,12 +101,11 @@ $(function () {
                     <td style="text-align:center; padding: 5px;"></td>
                     @else
                     @php
-                    dd($gr_detail0);
                     $gr_detail0 = $row["gr_detail"][0];
                     unset($row["gr_detail"][0]);
                     @endphp
                     <td style="text-align:center; padding: 5px;">{{ $gr_detail0["TR_GR_DETAIL_SAP_BATCH"] }}</td>
-                    <td style="text-align:center; padding: 5px;">{{ convert_to_web_dmy($gr_detail0["TR_GR_DETAIL_EXP_DATE"]) }}</td>
+                    <td style="text-align:center; padding: 5px;">{{ $gr_detail0["TR_GR_DETAIL_EXP_DATE"] }}</td>
                     <td style="text-align:right; padding: 5px;">{{ number_format($gr_detail0["TR_GR_DETAIL_LEFT_QTY"], 2)." ".$gr_detail0["TR_GR_DETAIL_BASE_UOM"] }}</td>
                     @endif
                     @endif
