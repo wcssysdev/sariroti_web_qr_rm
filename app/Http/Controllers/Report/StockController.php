@@ -12,11 +12,6 @@ class StockController extends Controller {
 
     public function get_opening_balance($plant_code, $start_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
-            "select" => [
-                "LG_MATERIAL_CODE",
-                "LG_MATERIAL_UOM", "TR_GR_DETAIL_SLOC",
-                DB::raw('SUM("LG_MATERIAL_QTY") as ACTUAL_QTY')
-            ],
             "table_name" => "LG_MATERIAL",
             "join" => [
                 [
@@ -42,26 +37,45 @@ class StockController extends Controller {
 //            "dump" => TRUE,
             "order_by" => [
                 [
-                    "field" => "TR_GR_DETAIL_SLOC",
-                    "type" => "ASC",
-                ],
-                [
                     "field" => "LG_MATERIAL_CODE",
                     "type" => "ASC",
                 ],
             ],
-            "group_by" => ["LG_MATERIAL_CODE", "LG_MATERIAL_UOM", "TR_GR_DETAIL_SLOC"]
         ];
         if ($is_detail) {
-            $statement['select'][] = "TR_GR_DETAIL_MATERIAL_NAME";
-            $statement['group_by'][] = "TR_GR_DETAIL_MATERIAL_NAME";
-        }
-        if ($sloc_code) {
-            $statement['where'][] = [
-                "field_name" => "TR_GR_DETAIL_SLOC",
-                "operator" => "=",
-                "value" => $sloc_code
+            $statement['select'] = [
+                "LG_MATERIAL_CODE",
+                "LG_MATERIAL_UOM", "TR_GR_DETAIL_SLOC"
             ];
+            $statement['select'][] = "TR_GR_DETAIL_MATERIAL_NAME";
+            $statement['select'][] = "TR_GR_DETAIL_SAP_BATCH";
+            $statement['select'][] = "TR_GR_DETAIL_EXP_DATE";
+            $statement['select'][] = "TR_GR_DETAIL_LEFT_QTY";
+            $statement['select'][] = DB::raw('"LG_MATERIAL_QTY" as ACTUAL_QTY');
+            $statement['group_by'] = ["LG_MATERIAL_CODE", "LG_MATERIAL_UOM", "TR_GR_DETAIL_SLOC"];
+            $statement['group_by'][] = "TR_GR_DETAIL_MATERIAL_NAME";
+            $statement['group_by'][] = "LG_MATERIAL_CODE";
+            $statement['group_by'][] = "TR_GR_DETAIL_SLOC";
+            $statement['group_by'][] = "TR_GR_DETAIL_SAP_BATCH";
+            $statement['group_by'][] = "TR_GR_DETAIL_EXP_DATE";
+            $statement['group_by'][] = "TR_GR_DETAIL_LEFT_QTY";
+        } else {
+            $statement['select'][] = DB::raw('SUM("LG_MATERIAL"."LG_MATERIAL_QTY") as ACTUAL_QTY');
+            $statement['select'][] = "LG_MATERIAL_CODE";
+            $statement['select'][] = "LG_MATERIAL_UOM";
+            $statement['group_by'][] = "LG_MATERIAL_CODE";
+            $statement['group_by'][] = "LG_MATERIAL_UOM";
+            $statement['order_by'][] = "TR_GR_DETAIL_SLOC";
+            $statement['group_by'][] = "TR_GR_DETAIL_SLOC";
+            $statement['select'][] = "TR_GR_DETAIL_SLOC";
+            if ($sloc_code) {
+                $statement['group_by'][] = "TR_GR_DETAIL_SLOC";
+                $statement['where'][] = [
+                    "field_name" => "TR_GR_DETAIL_SLOC",
+                    "operator" => "=",
+                    "value" => $sloc_code
+                ];
+            }
         }
         if ($mat_code) {
             $statement['where'][] = [
@@ -77,7 +91,7 @@ class StockController extends Controller {
 
     public function get_receipt_balance($plant_code, $start_date, $end_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
-            "select" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM", DB::raw('SUM("LG_MATERIAL_QTY") as Qty')],
+            "select" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM"],
             "table_name" => "LG_MATERIAL",
             "join" => [
                 [
@@ -124,7 +138,11 @@ class StockController extends Controller {
         ];
         if ($is_detail) {
             $statement['select'][] = "TR_GR_DETAIL_MATERIAL_NAME";
+            $statement['select'][] = DB::raw('"LG_MATERIAL_QTY" as Qty');
             $statement['group_by'][] = "TR_GR_DETAIL_MATERIAL_NAME";
+            $statement['group_by'][] = "LG_MATERIAL_QTY";
+        } else {
+            $statement['select'][] = DB::raw('SUM("LG_MATERIAL_QTY") as Qty');
         }
         if ($sloc_code) {
             $statement['where'][] = [
@@ -146,7 +164,7 @@ class StockController extends Controller {
 
     public function get_issued_balance($plant_code, $start_date, $end_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
-            "select" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM", DB::raw('SUM("LG_MATERIAL_QTY") as Qty')],
+            "select" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM"],
             "table_name" => "LG_MATERIAL",
             "join" => [
                 [
@@ -193,7 +211,11 @@ class StockController extends Controller {
         ];
         if ($is_detail) {
             $statement['select'][] = "TR_GR_DETAIL_MATERIAL_NAME";
+            $statement['select'][] = DB::raw('"LG_MATERIAL_QTY" as Qty');
+            $statement['group_by'][] = "LG_MATERIAL_QTY";
             $statement['group_by'][] = "TR_GR_DETAIL_MATERIAL_NAME";
+        } else {
+            $statement['select'][] = DB::raw('SUM("LG_MATERIAL_QTY") as Qty');
         }
         if ($sloc_code) {
             $statement['where'][] = [
@@ -254,6 +276,13 @@ class StockController extends Controller {
                     "on1" => "TR_GR_HEADER.TR_GR_HEADER_ID",
                     "operator" => "=",
                     "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
+                ],
+                [
+                    "join_type" => "inner",
+                    "table_name" => "LG_MATERIAL",
+                    "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
+                    "operator" => "=",
+                    "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
                 ]
             ],
             "where" => [
@@ -278,7 +307,7 @@ class StockController extends Controller {
                     "value" => false
                 ],
             ],
-            "dump" => FALSE,
+//            "dump" => FALSE,
             "order_by" => [
                 [
                     "field" => "TR_GR_DETAIL_MATERIAL_CODE",
@@ -307,25 +336,33 @@ class StockController extends Controller {
         if ($page_header) {
             $statement['distinct'] = TRUE;
             $statement['select'][] = "TR_GR_DETAIL_SLOC";
+            $statement['order_by'][] = "LG_MATERIAL_POSTING_DATE";
             $statement['where'][] = [
-                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
+                "field_name" => "LG_MATERIAL_POSTING_DATE",
+//                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
                 "operator" => ">=",
                 "value" => $start_date
             ];
             $statement['where'][] = [
-                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
+                "field_name" => "LG_MATERIAL_POSTING_DATE",
+//                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
                 "operator" => "<=",
                 "value" => $end_date
             ];
         } else {
-            $statement['distinct'] = TRUE;
+//            $statement['distinct'] = FALSE;
+//            $statement['dump'] = TRUE;
+//            $statement['select'][] = "LG_MATERIAL_ID";
+            $statement['select'][] = "LG_MATERIAL_QTY";
             $statement['where'][] = [
-                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
+                "field_name" => "LG_MATERIAL_POSTING_DATE",
+//                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
                 "operator" => ">=",
                 "value" => $start_date
             ];
             $statement['where'][] = [
-                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
+                "field_name" => "LG_MATERIAL_POSTING_DATE",
+//                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
                 "operator" => "<=",
                 "value" => $end_date
             ];
@@ -386,9 +423,9 @@ class StockController extends Controller {
                     abort(404);
                 }
             }
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->start_date));
-            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date));
-            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date));
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->start_date), "", "", FALSE);
+            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date), "", "", FALSE);
+            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date), "", "", FALSE);
             $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->start_date), "", "", TRUE, convert_to_y_m_d($request->end_date));
             if (!empty($request->dump)) {
                 echo "OB:" . json_encode($open_balance);
@@ -584,9 +621,9 @@ class StockController extends Controller {
                     abort(404);
                 }
             }
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->start_date));
-            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date));
-            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date));
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($request->start_date), "", "", FALSE);
+            $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date), "", "", FALSE);
+            $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($request->start_date), convert_to_y_m_d($request->end_date), "", "", FALSE);
             $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($request->start_date), "", "", TRUE, convert_to_y_m_d($request->end_date));
 
             $list_mat_code = [];
@@ -736,12 +773,14 @@ class StockController extends Controller {
             $sdate = html_entity_decode($request->start_date);
             $edate = html_entity_decode($request->end_date);
 
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, TRUE);
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, FALSE);
             $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
             $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
 
             $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, FALSE, convert_to_y_m_d($edate));
             if (!empty($request->dump)) {
+                echo json_encode($request->sloc_code);
+                echo "<br/>";
                 echo json_encode($sdate);
                 echo "<br/>";
                 echo json_encode($edate);
@@ -843,10 +882,10 @@ class StockController extends Controller {
             $sdate = html_entity_decode($request->start_date);
             $edate = html_entity_decode($request->end_date);
 
-            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, TRUE);
+            $open_balance = $this->get_opening_balance($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, FALSE);
             $receipt_balance = $this->get_receipt_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
             $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
-                
+
             $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, FALSE, convert_to_y_m_d($edate));
 
             $list_mat_code[$request->material_code] = 0;
@@ -869,7 +908,6 @@ class StockController extends Controller {
                         "receipt_qty" => $receipt_balance[$i]["qty"]
                     ]);
                 }
-                
             }
 
             for ($i = 0; $i < count($issued_balance); $i++) {
@@ -948,19 +986,86 @@ class StockController extends Controller {
 //                echo "<br/>";    
 //                die();
 //}            
-            foreach ($row["gr_detail"] as $gr_detail) {
+            if (empty($row['gr_detail'])) {
                 $sheet->setCellValue('A' . ($counter), $sloc);
                 $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
-                $sheet->setCellValue('C' . ($counter), $matname);
+                $sheet->setCellValue('C' . ($counter), $row["TR_GR_DETAIL_MATERIAL_NAME"]);
                 $sheet->setCellValue('D' . ($counter), number_format(($row["actual_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
                 $sheet->setCellValue('E' . ($counter), number_format(($row["receipt_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
                 $sheet->setCellValue('F' . ($counter), number_format(abs($row["issued_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-                $sheet->setCellValue('G' . ($counter), number_format(($row["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('G' . ($counter), number_format(($row["actual_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
 
-                $sheet->setCellValue('H' . ($counter), $gr_detail["TR_GR_DETAIL_SAP_BATCH"]);
-                $sheet->setCellValue('I' . ($counter), convert_to_web_dmy($gr_detail["TR_GR_DETAIL_EXP_DATE"]));
-                $sheet->setCellValue('J' . ($counter), number_format($gr_detail["TR_GR_DETAIL_LEFT_QTY"], 2) . " " . $gr_detail["TR_GR_DETAIL_BASE_UOM"]);
-                $counter++;
+                $sheet->setCellValue('H' . ($counter), "");
+                $sheet->setCellValue('I' . ($counter), "");
+                $sheet->setCellValue('J' . ($counter), "");
+            } else {
+                $flag = 0;
+                $total_closing = 0;
+                foreach ($row["gr_detail"] as $gr_detail) {
+                    if ($flag == 0) {
+                        $sheet->setCellValue('A' . ($counter), $sloc);
+                        $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
+                        $sheet->setCellValue('C' . ($counter), $matname);
+                        $sheet->setCellValue('D' . ($counter), number_format(($row["actual_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
+                        $sheet->setCellValue('E' . ($counter), number_format((0), 2) . " " . $row["LG_MATERIAL_UOM"]);
+                        $sheet->setCellValue('F' . ($counter), number_format(0, 2) . " " . $row["LG_MATERIAL_UOM"]);
+                        $sheet->setCellValue('G' . ($counter), number_format(($row["actual_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
+
+                        $sheet->setCellValue('H' . ($counter), "");
+                        $sheet->setCellValue('I' . ($counter), "");
+                        $sheet->setCellValue('J' . ($counter), "");
+                        $total_closing += $gr_detail['LG_MATERIAL_QTY'] + $row["actual_qty"];
+                        $counter++;
+                        $sheet->setCellValue('A' . ($counter), $sloc);
+                        $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
+                        $sheet->setCellValue('C' . ($counter), $matname);
+                        $sheet->setCellValue('D' . ($counter), number_format(0, 2));
+                        if ($gr_detail['LG_MATERIAL_QTY'] > 0) {
+                            $sheet->setCellValue('E' . ($counter), number_format($gr_detail['LG_MATERIAL_QTY'], 2) . " " . $row["LG_MATERIAL_UOM"]);
+                            $sheet->setCellValue('F' . ($counter), number_format(0, 2));
+                        } else {
+                            $sheet->setCellValue('E' . ($counter), number_format(0, 2));
+                            $sheet->setCellValue('F' . ($counter), number_format(abs($gr_detail['LG_MATERIAL_QTY']), 2) . " " . $row["LG_MATERIAL_UOM"]);
+                        }
+                        $sheet->setCellValue('G' . ($counter), number_format($total_closing, 2) . " " . $row["LG_MATERIAL_UOM"]);
+
+                        $sheet->setCellValue('H' . ($counter), $gr_detail["TR_GR_DETAIL_SAP_BATCH"]);
+                        $sheet->setCellValue('I' . ($counter), convert_to_web_dmy($gr_detail["TR_GR_DETAIL_EXP_DATE"]));
+                        if ($gr_detail['LG_MATERIAL_QTY'] > 0) {
+                            $sheet->setCellValue('J' . ($counter), number_format($gr_detail["LG_MATERIAL_QTY"], 2) . " " . $gr_detail["TR_GR_DETAIL_BASE_UOM"]);
+                        } else {
+                            $sheet->setCellValue('J' . ($counter), "-" . number_format(abs($gr_detail["LG_MATERIAL_QTY"]), 2) . " " . $gr_detail["TR_GR_DETAIL_BASE_UOM"]);
+                        }
+                        $flag++;
+                        $counter++;
+                    } else {
+                        $total_closing += $gr_detail['LG_MATERIAL_QTY'];
+
+                        $sheet->setCellValue('A' . ($counter), $sloc);
+                        $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
+                        $sheet->setCellValue('C' . ($counter), $matname);
+                        $sheet->setCellValue('D' . ($counter), number_format(0, 2));
+
+                        if ($gr_detail['LG_MATERIAL_QTY'] > 0) {
+                            $sheet->setCellValue('E' . ($counter), number_format($gr_detail['LG_MATERIAL_QTY'], 2) . " " . $row["LG_MATERIAL_UOM"]);
+                            $sheet->setCellValue('F' . ($counter), number_format(0, 2));
+                        } else {
+                            $sheet->setCellValue('E' . ($counter), number_format(0, 2));
+                            $sheet->setCellValue('F' . ($counter), number_format(abs($gr_detail['LG_MATERIAL_QTY']), 2) . " " . $row["LG_MATERIAL_UOM"]);
+                        }
+                        $sheet->setCellValue('G' . ($counter), number_format($total_closing, 2) . " " . $row["LG_MATERIAL_UOM"]);
+                        $sheet->setCellValue('H' . ($counter), $gr_detail["TR_GR_DETAIL_SAP_BATCH"]);
+                        $sheet->setCellValue('I' . ($counter), convert_to_web_dmy($gr_detail["TR_GR_DETAIL_EXP_DATE"]));
+                        if ($gr_detail['LG_MATERIAL_QTY'] > 0) {
+                            $sheet->setCellValue('J' . ($counter), number_format($gr_detail["TR_GR_DETAIL_LEFT_QTY"], 2) . " " . $gr_detail["TR_GR_DETAIL_BASE_UOM"]);
+                        } else {
+                            $sheet->setCellValue('J' . ($counter), "-" . number_format(abs($gr_detail["TR_GR_DETAIL_LEFT_QTY"]), 2) . " " . $gr_detail["TR_GR_DETAIL_BASE_UOM"]);
+                        }
+
+
+                        $counter++;
+                    }
+                }
             }
 
 
