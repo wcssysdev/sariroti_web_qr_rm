@@ -268,31 +268,33 @@ class ViewController extends Controller {
                         ],
                         "where" => [
                             [
-                                "field_name" => "TR_GR_DETAIL_GR_REFERENCE",
+                                "field_name" => "TR_GR_DETAIL_Y21_TP_REF",
                                 "operator" => "=",
-                                "value" => $row["TR_TP_DETAIL_GR_DETAIL_ID"]
+                                "value" => $row["TR_TP_DETAIL_Y21_GR_REF"]
                             ]
                         ],
                         "first_row" => true
                     ]);
 
-                    insert_material_log([
-                        "material_code" => $row["TR_TP_DETAIL_MATERIAL_CODE"],
-                        "plant_code" => $tp_header["TR_TP_HEADER_PLANT_CODE"],
-                        "posting_date" => $tp_header["TR_TP_HEADER_PSTG_DATE"],
-                        "movement_type" => $tp_header["TR_TP_HEADER_MVT_CODE"],
-                        "gr_detail_id" => $row["TR_TP_DETAIL_GR_DETAIL_ID"],
-                        "base_qty" => -$row["TR_TP_DETAIL_MOBILE_QTY"],
-                        "base_uom" => $row["TR_TP_DETAIL_MOBILE_UOM"],
-                        "created_by" => "0"
-                    ]);
+                    if ($gr_detail) {
+                        insert_material_log([
+                            "material_code" => $row["TR_TP_DETAIL_MATERIAL_CODE"],
+                            "plant_code" => $tp_header["TR_TP_HEADER_PLANT_CODE"],
+                            "posting_date" => $tp_header["TR_TP_HEADER_PSTG_DATE"],
+                            "movement_type" => $tp_header["TR_TP_HEADER_MVT_CODE"],
+                            "gr_detail_id" => $gr_detail["TR_GR_DETAIL_ID"],
+                            "base_qty" => -$row["TR_TP_DETAIL_MOBILE_QTY"],
+                            "base_uom" => $row["TR_TP_DETAIL_MOBILE_UOM"],
+                            "created_by" => "0"
+                        ]);
 
-                    std_delete([
-                        "table_name" => "TR_GR_DETAIL",
-                        "where" => [
-                            "TR_GR_DETAIL_ID" => $gr_detail["TR_GR_DETAIL_ID"]
-                        ]
-                    ]);
+                        std_delete([
+                            "table_name" => "TR_GR_DETAIL",
+                            "where" => [
+                                "TR_GR_DETAIL_ID" => $gr_detail["TR_GR_DETAIL_ID"]
+                            ]
+                        ]);
+                    }
                 }
             }
             std_delete([

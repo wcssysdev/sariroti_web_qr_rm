@@ -53,97 +53,56 @@ $(function () {
                 <td style="text-align:center; padding: 5px;width:10%;"><b>Actual Qty</b></td>
             </tr>
             @foreach ($open_balance as $row)
-            @if(empty($row["gr_detail"]))
-            <tr>
-                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_CODE"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format($row["actual_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format($row["receipt_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(abs($row["issued_qty"]), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format($row["actual_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;"></td>
-                <td style="text-align:right; padding: 5px;"></td>
-                <td style="text-align:right; padding: 5px;"></td>
-            </tr>
-            @else
             @php
-            $flag = 0;
-            $total_closing = 0;
-            @endphp
-            @foreach ($row["gr_detail"] as $gr_detail)
-            @if ($flag == 0)
-            <tr>
-                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_CODE"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format($row["actual_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(0,2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(0, 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format($row["actual_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;"></td>
-                <td style="text-align:right; padding: 5px;"></td>
-                <td style="text-align:right; padding: 5px;"></td>
-            </tr>    
-            @php
-            $total_closing += $gr_detail['LG_MATERIAL_QTY'] + $row["actual_qty"];
+            if(!empty($row['TR_GR_DETAIL_ID']) && !empty($row_detail[$row['TR_GR_DETAIL_ID']])){
+            $in = $row_detail[$row['TR_GR_DETAIL_ID']]['IN'];
+            $out = $row_detail[$row['TR_GR_DETAIL_ID']]['OUT'];
+            $act = $row["actual_qty"]+$in+$out;
+            unset($row_detail[$row['TR_GR_DETAIL_ID']]);
+            }else{
+            $in = $row["receipt_qty"];
+            $out = $row["issued_qty"];
+            $act = $row["actual_qty"];
+            }
             @endphp
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_CODE"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(0,2) }}</td>
-                @if($gr_detail['LG_MATERIAL_QTY'] > 0)
-                <td style="text-align:right; padding: 5px;">{{ number_format($gr_detail['LG_MATERIAL_QTY'],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(0,2) }}</td>
+                <td style="text-align:right; padding: 5px;">{{ number_format($row["actual_qty"],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
+                <td style="text-align:right; padding: 5px;">{{ number_format($in,2)." ".$row["LG_MATERIAL_UOM"] }}</td>
+                <td style="text-align:right; padding: 5px;">{{ number_format(abs($out), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
+                <td style="text-align:right; padding: 5px;">{{ number_format($act,2)." ".$row["LG_MATERIAL_UOM"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ (empty($row["TR_GR_DETAIL_SAP_BATCH"])?"":$row["TR_GR_DETAIL_SAP_BATCH"]) }}</td>
+                <td style="text-align:center; padding: 5px;">{{ convert_to_web_dmy($row["TR_GR_DETAIL_EXP_DATE"]) }}</td>
+                @if($row['actual_qty'] > 0)
+                <td style="text-align:right; padding: 5px;">{{ number_format($row["actual_qty"], 2)." ".$row["TR_GR_DETAIL_BASE_UOM"] }}</td>
                 @else
-                <td style="text-align:right; padding: 5px;">{{ number_format(0,2) }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(abs($gr_detail['LG_MATERIAL_QTY']), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                @endif
-                <td style="text-align:right; padding: 5px;">{{ number_format($total_closing,2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $gr_detail["TR_GR_DETAIL_SAP_BATCH"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ convert_to_web_dmy($gr_detail["TR_GR_DETAIL_EXP_DATE"]) }}</td>
-                @if($gr_detail['LG_MATERIAL_QTY'] > 0)
-                <td style="text-align:right; padding: 5px;">{{ number_format($gr_detail["LG_MATERIAL_QTY"], 2)." ".$gr_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>
-                @else
-                <td style="text-align:right; padding: 5px;">{{ "-". number_format(abs($gr_detail["LG_MATERIAL_QTY"]), 2)." ".$gr_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>
+                <td style="text-align:right; padding: 5px;">{{ "-". number_format(abs($row["actual_qty"]), 2)." ".$row["TR_GR_DETAIL_BASE_UOM"] }}</td>
                 @endif
             </tr>
-            @php
-            $flag++;
-            @endphp
-            @else  
-            @php
-            $total_closing += $gr_detail['LG_MATERIAL_QTY'];
-            @endphp
-            <tr>
-                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_CODE"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(0,2) }}</td>
-                @if($gr_detail['LG_MATERIAL_QTY'] > 0)
-                <td style="text-align:right; padding: 5px;">{{ number_format($gr_detail['LG_MATERIAL_QTY'],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(0,2) }}</td>
-                @else
-                <td style="text-align:right; padding: 5px;">{{ number_format(0,2) }}</td>
-                <td style="text-align:right; padding: 5px;">{{ number_format(abs($gr_detail['LG_MATERIAL_QTY']), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                @endif
-                <td style="text-align:right; padding: 5px;">{{ number_format($total_closing,2)." ".$row["LG_MATERIAL_UOM"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $gr_detail["TR_GR_DETAIL_SAP_BATCH"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ convert_to_web_dmy($gr_detail["TR_GR_DETAIL_EXP_DATE"]) }}</td>
-                @if($gr_detail['LG_MATERIAL_QTY'] > 0)
-                <td style="text-align:right; padding: 5px;">{{ number_format($gr_detail["LG_MATERIAL_QTY"], 2)." ".$gr_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>
-                @else
-                <td style="text-align:right; padding: 5px;">{{ "-". number_format(abs($gr_detail["LG_MATERIAL_QTY"]), 2)." ".$gr_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>
-                @endif                
-                <!--<td style="text-align:right; padding: 5px;">{{ number_format($gr_detail["TR_GR_DETAIL_LEFT_QTY"], 2)." ".$gr_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>-->
-            </tr>
-            @php
-            @endphp
-            @endif
-            @endforeach
-            @endif
 
+            @endforeach
+            @foreach($row_detail as $dt_detail)
+            @php
+            $closing = $dt_detail['IN'] + $dt_detail['OUT'];
+            @endphp
+            <tr>
+                <td style="text-align:center; padding: 5px;">{{ $dt_detail["TR_GR_DETAIL_SLOC"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $dt_detail["TR_GR_DETAIL_MATERIAL_CODE"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $dt_detail["TR_GR_DETAIL_MATERIAL_NAME"] }}</td>
+                <td style="text-align:right; padding: 5px;">{{ number_format(0,2) }}</td>
+                <td style="text-align:right; padding: 5px;">{{ number_format($dt_detail['IN'],2)." ".$row["LG_MATERIAL_UOM"] }}</td>
+                <td style="text-align:right; padding: 5px;">{{ number_format(abs($dt_detail['OUT']), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
+                <td style="text-align:right; padding: 5px;">{{ number_format($closing,2)." ".$row["LG_MATERIAL_UOM"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $dt_detail["TR_GR_DETAIL_SAP_BATCH"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ convert_to_web_dmy($dt_detail["TR_GR_DETAIL_EXP_DATE"]) }}</td>
+                @if($closing >= 0)
+                <td style="text-align:right; padding: 5px;">{{ number_format($closing, 2)." ".$dt_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>
+                @else
+                <td style="text-align:right; padding: 5px;">{{ "-". number_format(abs($closing), 2)." ".$dt_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>
+                @endif                
+            </tr>            
             @endforeach
         </table>
     </div>
