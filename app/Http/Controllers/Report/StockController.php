@@ -749,14 +749,14 @@ class StockController extends Controller {
 
             $sheet->setCellValue('B' . ($counter), $open_balance[$i]["LG_MATERIAL_CODE"]);
             $sheet->setCellValue('C' . ($counter), $matname);
-            $sheet->setCellValue('D' . ($counter), number_format(($open_balance[$i]["actual_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('E' . ($counter), number_format(($open_balance[$i]["receipt_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('F' . ($counter), number_format(abs($open_balance[$i]["issued_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('G' . ($counter), number_format(($open_balance[$i]["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('H' . ($counter), number_format(($open_balance[$i]["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('I' . ($counter), number_format(($open_balance[$i]["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('J' . ($counter), number_format(($open_balance[$i]["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('G' . ($counter), number_format(($open_balance[$i]["closing_qty"]), 2) . " " . $row["LG_MATERIAL_UOM"]);
+            $sheet->setCellValue('D' . ($counter), (($open_balance[$i]["actual_qty"])));
+            $sheet->setCellValue('E' . ($counter), $row["LG_MATERIAL_UOM"]);
+            $sheet->setCellValue('F' . ($counter), ($open_balance[$i]["receipt_qty"]));
+            $sheet->setCellValue('G' . ($counter), $row["LG_MATERIAL_UOM"]);
+            $sheet->setCellValue('H' . ($counter), (abs($open_balance[$i]["issued_qty"])));
+            $sheet->setCellValue('I' . ($counter), $row["LG_MATERIAL_UOM"]);
+            $sheet->setCellValue('J' . ($counter), (($open_balance[$i]["closing_qty"])));
+            $sheet->setCellValue('G' . ($counter), $row["LG_MATERIAL_UOM"]);
             $counter++;
             $id++;
         }
@@ -1031,12 +1031,17 @@ class StockController extends Controller {
         $sheet->setCellValue('B1', "Material Code");
         $sheet->setCellValue('C1', "Material Name");
         $sheet->setCellValue('D1', "Opening Qty");
-        $sheet->setCellValue('E1', "Total Receipt Qty");
-        $sheet->setCellValue('F1', "Total Issued Qty");
-        $sheet->setCellValue('G1', "Closing Qty");
-        $sheet->setCellValue('H1', "SAP Batch");
-        $sheet->setCellValue('I1', "Expired Date");
-        $sheet->setCellValue('J1', "Actual Qty");
+        $sheet->setCellValue('E1', "UoM");
+        $sheet->setCellValue('F1', "Total Receipt Qty");
+        $sheet->setCellValue('G1', "UoM");
+        $sheet->setCellValue('H1', "Total Issued Qty");
+        $sheet->setCellValue('I1', "UoM");
+        $sheet->setCellValue('J1', "Closing Qty");
+        $sheet->setCellValue('K1', "UoM");
+        $sheet->setCellValue('L1', "SAP Batch");
+        $sheet->setCellValue('M1', "Expired Date");
+        $sheet->setCellValue('N1', "Actual Qty");
+        $sheet->setCellValue('O1', "UoM");
         $counter = 2;
         $id = 1;
         for ($i = 0; $i < count($open_balance); $i++) {
@@ -1070,18 +1075,23 @@ class StockController extends Controller {
             $sheet->setCellValue('A' . ($counter), $row["TR_GR_DETAIL_SLOC"]);
             $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
             $sheet->setCellValue('C' . ($counter), $row["TR_GR_DETAIL_MATERIAL_NAME"]);
-            $sheet->setCellValue('D' . ($counter), number_format($row["actual_qty"], 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('E' . ($counter), number_format($in, 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('F' . ($counter), number_format(abs($out), 2) . " " . $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('G' . ($counter), number_format($act, 2) . " " . $row["LG_MATERIAL_UOM"]);
+            $sheet->setCellValue('D' . ($counter), ($row["actual_qty"]));
+            $sheet->setCellValue('E' . ($counter), $row["LG_MATERIAL_UOM"]);
+            $sheet->setCellValue('F' . ($counter), ($in));
+            $sheet->setCellValue('G' . ($counter), $row["LG_MATERIAL_UOM"]);
+            $sheet->setCellValue('H' . ($counter), (abs($out)));
+            $sheet->setCellValue('I' . ($counter), $row["LG_MATERIAL_UOM"]);
+            $sheet->setCellValue('J' . ($counter), ($act));
+            $sheet->setCellValue('K' . ($counter), $row["LG_MATERIAL_UOM"]);
 
-            $sheet->setCellValue('H' . ($counter), (empty($row["TR_GR_DETAIL_SAP_BATCH"]) ? "" : $row["TR_GR_DETAIL_SAP_BATCH"]));
-            $sheet->setCellValue('I' . ($counter),convert_to_web_dmy($row["TR_GR_DETAIL_EXP_DATE"]));
+            $sheet->setCellValue('L' . ($counter), (empty($row["TR_GR_DETAIL_SAP_BATCH"]) ? "" : $row["TR_GR_DETAIL_SAP_BATCH"]));
+            $sheet->setCellValue('M' . ($counter),convert_to_web_dmy($row["TR_GR_DETAIL_EXP_DATE"]));
             if ($row['actual_qty'] > 0) {
-                $sheet->setCellValue('J' . ($counter), number_format($row["actual_qty"], 2) . " " . $row["TR_GR_DETAIL_BASE_UOM"]);
+                $sheet->setCellValue('N' . ($counter), ($row["actual_qty"]));
             } else {
-                $sheet->setCellValue('J' . ($counter), "-" . number_format(abs($row["actual_qty"]), 2) . " " . $row["TR_GR_DETAIL_BASE_UOM"]);
+                $sheet->setCellValue('N' . ($counter), "-" . (abs($row["actual_qty"])));
             }
+            $sheet->setCellValue('O' . ($counter), $row["LG_MATERIAL_UOM"]);
             $counter++;
 
             foreach ($row_detail as $dt_detail) {
@@ -1090,18 +1100,23 @@ class StockController extends Controller {
                 $sheet->setCellValue('A' . ($counter), $dt_detail["TR_GR_DETAIL_SLOC"]);
                 $sheet->setCellValue('B' . ($counter), $dt_detail["TR_GR_DETAIL_MATERIAL_CODE"]);
                 $sheet->setCellValue('C' . ($counter), $dt_detail["TR_GR_DETAIL_MATERIAL_NAME"]);
-                $sheet->setCellValue('D' . ($counter), number_format(0, 2) . " " . $row["LG_MATERIAL_UOM"]);
-                $sheet->setCellValue('E' . ($counter), number_format($dt_detail['IN'], 2) . " " . $row["LG_MATERIAL_UOM"]);
-                $sheet->setCellValue('F' . ($counter), number_format(abs($dt_detail['OUT']), 2) . " " . $row["LG_MATERIAL_UOM"]);
-                $sheet->setCellValue('G' . ($counter), number_format($closing, 2) . " " . $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('D' . ($counter), (0));
+                $sheet->setCellValue('E' . ($counter), $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('F' . ($counter), ($dt_detail['IN']));
+                $sheet->setCellValue('G' . ($counter), $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('H' . ($counter), (abs($dt_detail['OUT'])));
+                $sheet->setCellValue('I' . ($counter), $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('J' . ($counter), ($closing));
+                $sheet->setCellValue('K' . ($counter), $row["LG_MATERIAL_UOM"]);
 
-                $sheet->setCellValue('H' . ($counter), $dt_detail["TR_GR_DETAIL_SAP_BATCH"]);
-                $sheet->setCellValue('I' . ($counter), convert_to_web_dmy($dt_detail["TR_GR_DETAIL_EXP_DATE"]));
+                $sheet->setCellValue('L' . ($counter), $dt_detail["TR_GR_DETAIL_SAP_BATCH"]);
+                $sheet->setCellValue('M' . ($counter), convert_to_web_dmy($dt_detail["TR_GR_DETAIL_EXP_DATE"]));
                 if ($closing >= 0) {
-                    $sheet->setCellValue('J' . ($counter), number_format($closing, 2) . " " . $dt_detail["TR_GR_DETAIL_BASE_UOM"]);
+                    $sheet->setCellValue('N' . ($counter), ($closing));
                 } else {
-                    $sheet->setCellValue('J' . ($counter), "-" . number_format(abs($closing), 2) . " " . $dt_detail["TR_GR_DETAIL_BASE_UOM"]);
+                    $sheet->setCellValue('N' . ($counter), "-" . (abs($closing)));
                 }
+                $sheet->setCellValue('O' . ($counter), $row["LG_MATERIAL_UOM"]);
                 $counter++;
             }
 
