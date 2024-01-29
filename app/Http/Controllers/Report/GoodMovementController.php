@@ -182,6 +182,7 @@ class GoodMovementController extends Controller {
     }
 
     public function excel(Request $request) {
+//        dd($request);
         $data = [];
         if ($request->plant_code != NULL && $request->start_date && $request->end_date) {
             if (session("user_role") != 6) {
@@ -229,7 +230,7 @@ class GoodMovementController extends Controller {
                         "on2" => "TR_GR_DETAIL.TR_GR_DETAIL_HEADER_ID",
                     ],
                     [
-                        "join_type" => "inner",
+                        "join_type" => "left",
                         "table_name" => "MA_USRACC",
                         "on1" => DB::raw('"LG_MATERIAL_CREATED_BY"::integer'),
                         "operator" => "=",

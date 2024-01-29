@@ -357,6 +357,7 @@ class StockController extends Controller {
 //            $statement['select'][] = "LG_MATERIAL_ID";
             $statement['select'][] = "LG_MATERIAL_QTY";
             $statement['select'][] = "TR_GR_DETAIL_SLOC";
+            $statement['select'][] = "TR_GR_DETAIL_EXP_DATE";
             $statement['where'][] = [
                 "field_name" => "LG_MATERIAL_POSTING_DATE",
 //                "field_name" => DB::raw('TO_DATE("TR_GR_HEADER_PSTG_DATE",\'YYYY-MM-DD\')'),
@@ -1061,6 +1062,7 @@ class StockController extends Controller {
 //                echo "<br/>";    
 //                die();
 //}            
+            if(!empty($row["actual_qty"])){
             if (!empty($row['TR_GR_DETAIL_ID']) && !empty($row_detail[$row['TR_GR_DETAIL_ID']])) {
                 $in = $row_detail[$row['TR_GR_DETAIL_ID']]['IN'];
                 $out = $row_detail[$row['TR_GR_DETAIL_ID']]['OUT'];
@@ -1093,6 +1095,7 @@ class StockController extends Controller {
             }
             $sheet->setCellValue('O' . ($counter), $row["LG_MATERIAL_UOM"]);
             $counter++;
+            }
 
             foreach ($row_detail as $dt_detail) {
                 $closing = $dt_detail['IN'] + $dt_detail['OUT'];

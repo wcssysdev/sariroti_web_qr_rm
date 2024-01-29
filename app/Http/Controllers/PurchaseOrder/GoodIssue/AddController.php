@@ -345,7 +345,7 @@ class AddController extends Controller {
 
     public function get_materials(Request $request) {
         $materials = std_get([
-            "select" => ["TR_PO_DETAIL_ID", "TR_PO_DETAIL_MATERIAL_CODE", "TR_PO_DETAIL_MATERIAL_NAME"],
+            "select" => ["TR_PO_DETAIL_ID", "TR_PO_DETAIL_MATERIAL_CODE", "TR_PO_DETAIL_MATERIAL_NAME", "TR_PO_DETAIL_MATERIAL_LINE_NUM"],
             "table_name" => "TR_PO_DETAIL",
             "where" => [
                 [
@@ -353,13 +353,24 @@ class AddController extends Controller {
                     "operator" => "=",
                     "value" => $request->po_number
                 ]
+            ],
+            "order_by" =>[
+                    [
+                        "field" => "TR_PO_DETAIL_MATERIAL_CODE",
+                        "type" => "ASC",
+                    ],                
+                    [
+                        "field" => "TR_PO_DETAIL_MATERIAL_LINE_NUM",
+                        "type" => "ASC",
+                    ],                
             ]
         ]);
         if ($materials != null) {
             foreach ($materials as $row) {
+                $linenum = empty($row["TR_PO_DETAIL_MATERIAL_LINE_NUM"])? "0" : $row["TR_PO_DETAIL_MATERIAL_LINE_NUM"];
                 $materials_adj[] = [
                     "id" => $row["TR_PO_DETAIL_ID"],
-                    "text" => $row["TR_PO_DETAIL_MATERIAL_CODE"] . " - " . $row["TR_PO_DETAIL_MATERIAL_NAME"]
+                    "text" => $linenum . " - " . $row["TR_PO_DETAIL_MATERIAL_CODE"] . " - " . $row["TR_PO_DETAIL_MATERIAL_NAME"]
                 ];
             }
             return response()->json([

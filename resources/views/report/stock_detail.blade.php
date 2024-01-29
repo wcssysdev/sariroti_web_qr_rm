@@ -64,7 +64,9 @@ $(function () {
             $out = $row["issued_qty"];
             $act = $row["actual_qty"];
             }
+            
             @endphp
+            @if(!empty($row["actual_qty"]))
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_CODE"] }}</td>
@@ -74,14 +76,19 @@ $(function () {
                 <td style="text-align:right; padding: 5px;">{{ number_format(abs($out), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td style="text-align:right; padding: 5px;">{{ number_format($act,2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ (empty($row["TR_GR_DETAIL_SAP_BATCH"])?"":$row["TR_GR_DETAIL_SAP_BATCH"]) }}</td>
+                @if(!empty($row["TR_GR_DETAIL_EXP_DATE"]) != 0)
                 <td style="text-align:center; padding: 5px;">{{ convert_to_web_dmy($row["TR_GR_DETAIL_EXP_DATE"]) }}</td>
                 @if($row['actual_qty'] > 0)
                 <td style="text-align:right; padding: 5px;">{{ number_format($row["actual_qty"], 2)." ".$row["TR_GR_DETAIL_BASE_UOM"] }}</td>
                 @else
                 <td style="text-align:right; padding: 5px;">{{ "-". number_format(abs($row["actual_qty"]), 2)." ".$row["TR_GR_DETAIL_BASE_UOM"] }}</td>
                 @endif
+                @else
+                <td style="text-align:center; padding: 5px;"></td>
+                <td style="text-align:center; padding: 5px;"></td>
+                @endif
             </tr>
-
+            @endif
             @endforeach
             @foreach($row_detail as $dt_detail)
             @php
