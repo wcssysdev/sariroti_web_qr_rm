@@ -27,12 +27,125 @@ class GoodMovementController extends Controller {
                 }
             }
 
+            /**
+             * Populate Data
+             * 1. GI [351]
+             * 2. GR [101]
+             * 3. TP - Y21
+             * 4. TP - 311 & 411
+             * 5. Cancellation
+             *    - 352
+             *    - 102
+             *    - 312 & 412
+             *    - Y22
+             */
             $data = std_get([
                 "select" => [
                     "TR_GR_HEADER_DOC_DATE",
                     "TR_GR_HEADER_PO_NUMBER",
                     "TR_GR_DETAIL_BASE_UOM",
-                    "TR_GR_HEADER_SAP_DOC",
+                    DB::raw('	case
+                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'351\') then (
+                            select
+                                    "TR_GI_SAPHEADER"."TR_GI_SAPHEADER_SAP_DOC"
+                            from
+                                    "TR_GI_SAPDETAIL"
+                            join "TR_GI_SAPHEADER" on
+                                    "TR_GI_SAPDETAIL"."TR_GI_SAPDETAIL_SAPHEADER_ID" = "TR_GI_SAPHEADER"."TR_GI_SAPHEADER_ID"
+                            where
+                                    "TR_GI_SAPDETAIL"."TR_GI_SAPDETAIL_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID" 
+                                    and "TR_GI_SAPHEADER"."TR_GI_SAPHEADER_IS_CANCELLED" = false
+                                    and "TR_GI_SAPHEADER"."TR_GI_SAPHEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE" 
+                            )
+                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'101\') then "TR_GR_HEADER"."TR_GR_HEADER_SAP_DOC"                            
+                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'Y21\') then (
+                            select
+                                    tth."TR_TP_HEADER_SAP_DOC"
+                            from
+                                    "TR_TP_DETAIL" ttd
+                            join "TR_TP_HEADER" tth on
+                                    ttd."TR_TP_DETAIL_TP_HEADER_ID" = tth."TR_TP_HEADER_ID"
+                            where
+                                    ttd."TR_TP_DETAIL_Y21_GR_REF" = "TR_GR_DETAIL"."TR_GR_DETAIL_Y21_TP_REF"
+                                    and tth."TR_TP_HEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE"		
+                            )                        
+                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'311\',\'411\') then (
+                            select
+                                    tth."TR_TP_HEADER_SAP_DOC"
+                            from
+                                    "TR_TP_DETAIL" ttd
+                            join "TR_TP_HEADER" tth on
+                                    ttd."TR_TP_DETAIL_TP_HEADER_ID" = tth."TR_TP_HEADER_ID"
+                            where
+                                    ttd."TR_TP_DETAIL_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID"
+                                    and tth."TR_TP_HEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE"
+                            )                        
+                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'102\', \'352\', \'162\', \'312\', \'412\', \'Y22\', \'552\') then (
+                            select
+                                    tcm."TR_CANCELLATION_MVT_MATDOC"
+                            from
+                                    "TR_CANCELATION_MVT_DETAIL" tcmd
+                            join "TR_CANCELATION_MVT" tcm on
+                                    tcmd."TR_CANCELATION_MVT_DETAIL_HEADER_ID" = tcm."TR_CANCELLATION_MVT_ID"
+                            where
+                                    tcm."TR_CANCELLATION_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE"
+                                    and tcm."TR_CANCELLATION_MVT_SAP_CODE" = "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE"
+                                    and tcmd."TR_CANCELATION_MVT_DETAIL_TRANSACTION_DETAIL_IDS" = (
+                                    case
+                                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" = \'352\' then (
+                                            select
+                                                    tgs2."TR_GI_SAPDETAIL_ID"
+                                            from
+                                                    "TR_GI_SAPDETAIL" tgs2
+                                            join "TR_GI_SAPHEADER" tgs3 on
+                                                    tgs2."TR_GI_SAPDETAIL_SAPHEADER_ID" = tgs3."TR_GI_SAPHEADER_ID"
+                                            where
+                                                    tgs3."TR_GI_SAPHEADER_SAP_DOC" = tcm."TR_CANCELLATION_MVT_TR_DOC"
+                                                    and tgs2."TR_GI_SAPDETAIL_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID" 
+                                    )
+                                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" = \'102\' then (
+                                            select
+                                                    tgd2."TR_GR_DETAIL_ID"
+                                            from
+                                                    "TR_GR_DETAIL" tgd2
+                                            join "TR_GR_HEADER" tgh2 on
+                                                    tgd2."TR_GR_DETAIL_HEADER_ID" = tgh2."TR_GR_HEADER_ID"
+                                            where
+                                                    tgh2."TR_GR_HEADER_SAP_DOC" = tcm."TR_CANCELLATION_MVT_TR_DOC"
+                                                    and tgd2."TR_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID"				
+                                    )
+                                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'312\', \'412\') then (
+                                            select
+                                                    ttd1."TR_TP_DETAIL_ID"
+                                            from
+                                                    "TR_TP_DETAIL" ttd1
+                                            join "TR_TP_HEADER" tth1 on
+                                                    ttd1."TR_TP_DETAIL_TP_HEADER_ID" = tth1."TR_TP_HEADER_ID"
+                                            where
+                                                    ttd1."TR_TP_DETAIL_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID"
+                                                    and tth1."TR_TP_HEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE"
+                                                    and tth1."TR_TP_HEADER_SAP_DOC" = tcm."TR_CANCELLATION_MVT_TR_DOC"				
+                                    )
+                                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'Y22\') then (
+                                            select
+                                                    ttd1."TR_TP_DETAIL_ID"
+                                            from
+                                                    "TR_TP_DETAIL" ttd1
+                                            join "TR_GR_DETAIL" tgd2 on
+                                                    ttd1."TR_TP_DETAIL_Y21_GR_REF" = tgd2."TR_GR_DETAIL_Y21_TP_REF"
+                                            join "TR_TP_HEADER" tth1 on
+                                                    ttd1."TR_TP_DETAIL_TP_HEADER_ID" = tth1."TR_TP_HEADER_ID"
+                                            where
+                                                    tth1."TR_TP_HEADER_SAP_DOC" = tcm."TR_CANCELLATION_MVT_TR_DOC"
+                                                    and tgd2."TR_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID"
+                                                    and tth1."TR_TP_HEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE"				
+                                    )
+                                            else 0
+                                    end
+                                    )
+                            )                          
+                            else "TR_GR_HEADER"."TR_GR_HEADER_SAP_DOC"
+                    end as "MAT_DOC"'),
                     "TR_GR_DETAIL_MATERIAL_NAME",
                     "TR_GR_DETAIL_BASE_UOM",
                     "TR_GR_DETAIL_SAP_BATCH",
@@ -52,14 +165,14 @@ class GoodMovementController extends Controller {
                 "table_name" => "LG_MATERIAL",
                 "join" => [
                     [
-                        "join_type" => "inner",
+                        "join_type" => "left",
                         "table_name" => "TR_GR_DETAIL",
                         "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                         "operator" => "=",
-                        "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
+                        "on2" => "LG_MATERIAL_GR_DETAIL_ID",
                     ],
                     [
-                        "join_type" => "inner",
+                        "join_type" => "left",
                         "table_name" => "TR_GR_HEADER",
                         "on1" => "TR_GR_HEADER.TR_GR_HEADER_ID",
                         "operator" => "=",
@@ -84,7 +197,7 @@ class GoodMovementController extends Controller {
                             [
                                 "on1" => "MA_SLOC.MA_SLOC_PLANT",
                                 "operator" => "=",
-                                "on2" => "LG_MATERIAL.LG_MATERIAL_PLANT_CODE"
+                                "on2" => "LG_MATERIAL_PLANT_CODE"
                             ]
                         ]
                     ]
@@ -220,7 +333,7 @@ class GoodMovementController extends Controller {
                         "table_name" => "TR_GR_DETAIL",
                         "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                         "operator" => "=",
-                        "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
+                        "on2" => "LG_MATERIAL_GR_DETAIL_ID",
                     ],
                     [
                         "join_type" => "inner",
@@ -248,7 +361,7 @@ class GoodMovementController extends Controller {
                             [
                                 "on1" => "MA_SLOC.MA_SLOC_PLANT",
                                 "operator" => "=",
-                                "on2" => "LG_MATERIAL.LG_MATERIAL_PLANT_CODE"
+                                "on2" => "LG_MATERIAL_PLANT_CODE"
                             ]
                         ]
                     ]
@@ -381,7 +494,7 @@ class GoodMovementController extends Controller {
                         "table_name" => "TR_GR_DETAIL",
                         "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                         "operator" => "=",
-                        "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
+                        "on2" => "LG_MATERIAL_GR_DETAIL_ID",
                     ],
                     [
                         "join_type" => "inner",
@@ -402,7 +515,7 @@ class GoodMovementController extends Controller {
                             [
                                 "on1" => "MA_SLOC.MA_SLOC_PLANT",
                                 "operator" => "=",
-                                "on2" => "LG_MATERIAL.LG_MATERIAL_PLANT_CODE"
+                                "on2" => "LG_MATERIAL_PLANT_CODE"
                             ]
                         ]
                     ]
@@ -540,7 +653,7 @@ class GoodMovementController extends Controller {
                         "table_name" => "TR_GR_DETAIL",
                         "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                         "operator" => "=",
-                        "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
+                        "on2" => "LG_MATERIAL_GR_DETAIL_ID",
                     ],
                     [
                         "join_type" => "inner",
@@ -561,7 +674,7 @@ class GoodMovementController extends Controller {
                             [
                                 "on1" => "MA_SLOC.MA_SLOC_PLANT",
                                 "operator" => "=",
-                                "on2" => "LG_MATERIAL.LG_MATERIAL_PLANT_CODE"
+                                "on2" => "LG_MATERIAL_PLANT_CODE"
                             ]
                         ]
                     ]

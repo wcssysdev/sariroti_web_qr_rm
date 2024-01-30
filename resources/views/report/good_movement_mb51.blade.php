@@ -113,7 +113,7 @@ $(function () {
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SAP_BATCH"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["MA_SLOC_CODE"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_MVT_TYPE"] }}</td>
-                <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_HEADER_SAP_DOC"] }}</td>
+                <td style="text-align:center; padding: 5px;">{{ $row["MAT_DOC"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["ENTRY_DATE"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["ENTRY_TIME"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["MA_USRACC_FULL_NAME"] }}</td>

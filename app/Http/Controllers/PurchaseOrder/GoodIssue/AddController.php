@@ -607,7 +607,7 @@ class AddController extends Controller {
                             ], 500);
         }
 
-        $po_detail = std_get([
+        $po_detail1 = std_get([
             "select" => ["*"],
             "table_name" => "TR_PO_DETAIL",
             "where" => [
@@ -623,7 +623,7 @@ class AddController extends Controller {
         $plant_code = $po_header["TR_PO_HEADER_SUP_PLANT"];
         $plant_code_file = $po_header["TR_PO_HEADER_SUP_PLANT"];
         if ($po_header["TR_PO_HEADER_TYPE"] == "ZSTO") {
-            $plant_code = $po_detail["TR_PO_DETAIL_PLANT_RCV"];
+            $plant_code = $po_detail1["TR_PO_DETAIL_PLANT_RCV"];
         }
 
         $po_detail = std_get([
@@ -636,8 +636,21 @@ class AddController extends Controller {
                     "value" => $request->po_number
                 ]
             ],
+            "order_by" =>[
+                    [
+                        "field" => "TR_PO_DETAIL_MATERIAL_CODE",
+                        "type" => "ASC",
+                    ],                
+                    [
+                        "field" => "TR_PO_DETAIL_MATERIAL_LINE_NUM",
+                        "type" => "ASC",
+                    ],                
+            ],
             "first_row" => false
         ]);
+        
+        $temp_gi = $gi_materials;
+        
         $count = 0;
         foreach ($po_detail as $row) {
             $master_material = std_get([
@@ -711,22 +724,36 @@ class AddController extends Controller {
             $material_code = $row["TR_PO_DETAIL_MATERIAL_CODE"];
             $material_name = $row["TR_PO_DETAIL_MATERIAL_NAME"];
 
-            $temp_gi = $gi_materials;
+
 
             for ($i = 0; $i < count($temp_gi); $i++) {
+//            echo "PODETAIL:".json_encode($row);
+//            echo "<br/>";
+//            echo "<br/>";
+//            echo "<br/>";
+//            echo "TEMPDETIL:".json_encode($temp_gi[$i]);
+//            echo "<br/>";
+//            echo "<br/>";
+//            echo "<br/>";
 
-                if ($row["TR_PO_DETAIL_MATERIAL_CODE"] == $temp_gi[$i]["TR_GR_DETAIL_MATERIAL_CODE"]) {
+                if (($row["TR_PO_DETAIL_MATERIAL_CODE"] == $temp_gi[$i]["TR_GR_DETAIL_MATERIAL_CODE"]) && ($base_qty >= $temp_gi[$i]["TR_GR_DETAIL_LOCK_BOOKED_QTY"])) {
                     $global_gi_materials[$count]["po_id"] = $row["TR_PO_DETAIL_ID"];
                     $check_qty -= $temp_gi[$i]["TR_GR_DETAIL_LOCK_BOOKED_QTY"];
                     unset($gi_materials[$i]);
                     $count++;
+                }else{
+                    
                 }
 
                 if ($check_qty == 0) {
                     break;
                 }
             }
-//            dd($check_qty);
+
+//            echo "QTY:".json_encode($check_qty);
+//            echo "<br/>";
+//            echo "<br/>";
+//            echo "<br/>";
             if ($check_qty != 0) {
                 return response()->json([
                             'message' => $material_code . " " . $material_name . " Qty harus full GI"
@@ -740,7 +767,8 @@ class AddController extends Controller {
 //            }
             $gi_materials = array_values($gi_materials);
         }
-
+//            echo json_encode($temp_gi);echo "<br/>";
+//            dd("ANU=");
         $movement_code = "351"; //ZRAW
         if ($po_header["TR_PO_HEADER_TYPE"] == "ZSTO") {
             $movement_code = "351";
