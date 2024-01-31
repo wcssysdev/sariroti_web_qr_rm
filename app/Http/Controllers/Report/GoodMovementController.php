@@ -44,20 +44,8 @@ class GoodMovementController extends Controller {
                     "TR_GR_HEADER_DOC_DATE",
                     "TR_GR_HEADER_PO_NUMBER",
                     "TR_GR_DETAIL_BASE_UOM",
-                    DB::raw('	case
-                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'351\') then (
-                            select
-                                    "TR_GI_SAPHEADER"."TR_GI_SAPHEADER_SAP_DOC"
-                            from
-                                    "TR_GI_SAPDETAIL"
-                            join "TR_GI_SAPHEADER" on
-                                    "TR_GI_SAPDETAIL"."TR_GI_SAPDETAIL_SAPHEADER_ID" = "TR_GI_SAPHEADER"."TR_GI_SAPHEADER_ID"
-                            where
-                                    "TR_GI_SAPDETAIL"."TR_GI_SAPDETAIL_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID" 
-                                    and "TR_GI_SAPHEADER"."TR_GI_SAPHEADER_IS_CANCELLED" = false
-                                    and "TR_GI_SAPHEADER"."TR_GI_SAPHEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE" 
-                            )
-                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'101\') then "TR_GR_HEADER"."TR_GR_HEADER_SAP_DOC"                            
+                    DB::raw('
+                            	case
                             when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'Y21\') then (
                             select
                                     tth."TR_TP_HEADER_SAP_DOC"
@@ -65,11 +53,13 @@ class GoodMovementController extends Controller {
                                     "TR_TP_DETAIL" ttd
                             join "TR_TP_HEADER" tth on
                                     ttd."TR_TP_DETAIL_TP_HEADER_ID" = tth."TR_TP_HEADER_ID"
+                            join "TR_GR_DETAIL" tgd3 on
+                                    tgd3."TR_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID"
                             where
-                                    ttd."TR_TP_DETAIL_Y21_GR_REF" = "TR_GR_DETAIL"."TR_GR_DETAIL_Y21_TP_REF"
+                                    ttd."TR_TP_DETAIL_Y21_GR_REF" = tgd3."TR_GR_DETAIL_Y21_TP_REF"
                                     and tth."TR_TP_HEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE"		
-                            )                        
-                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'311\',\'411\') then (
+                            )
+                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'311\') then (
                             select
                                     tth."TR_TP_HEADER_SAP_DOC"
                             from
@@ -79,7 +69,21 @@ class GoodMovementController extends Controller {
                             where
                                     ttd."TR_TP_DETAIL_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID"
                                     and tth."TR_TP_HEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE"
-                            )                        
+                            )
+                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'101\') then (
+                            select
+                                    tgh."TR_GR_HEADER_SAP_DOC"
+                            from
+                                    "TR_GR_DETAIL" tgd
+                            left join "TR_GR_HEADER" tgh on
+                                    tgd."TR_GR_DETAIL_HEADER_ID" = tgh."TR_GR_HEADER_ID"
+                            where
+                                    ("LG_MATERIAL"."LG_MATERIAL_POSTING_DATE" between \''.convert_to_y_m_d($request->start_date).'\' and \''.convert_to_y_m_d($request->end_date).'\')
+                                            and tgd."TR_GR_DETAIL_IS_CANCELLED" is false
+                                            and tgh."TR_GR_HEADER_IS_CANCELLED" is false
+                                            and
+                    tgd."TR_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID"
+                    )
                             when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'102\', \'352\', \'162\', \'312\', \'412\', \'Y22\', \'552\') then (
                             select
                                     tcm."TR_CANCELLATION_MVT_MATDOC"
@@ -101,6 +105,8 @@ class GoodMovementController extends Controller {
                                                     tgs2."TR_GI_SAPDETAIL_SAPHEADER_ID" = tgs3."TR_GI_SAPHEADER_ID"
                                             where
                                                     tgs3."TR_GI_SAPHEADER_SAP_DOC" = tcm."TR_CANCELLATION_MVT_TR_DOC"
+                                                    and tgs3."TR_GI_SAPHEADER_IS_CANCELLED" is false
+                                                    and tgs2."TR_GI_SAPDETAIL_IS_CANCELLED" is false
                                                     and tgs2."TR_GI_SAPDETAIL_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID" 
                                     )
                                             when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" = \'102\' then (
@@ -143,8 +149,21 @@ class GoodMovementController extends Controller {
                                             else 0
                                     end
                                     )
-                            )                          
-                            else "TR_GR_HEADER"."TR_GR_HEADER_SAP_DOC"
+                            )
+                            when "LG_MATERIAL"."LG_MATERIAL_MVT_TYPE" in(\'351\') then (
+                            select
+                                    tgsh."TR_GI_SAPHEADER_SAP_DOC"
+                            from
+                                    "TR_GI_SAPDETAIL" tgs
+                            join "TR_GI_SAPHEADER" tgsh on
+                                    tgs."TR_GI_SAPDETAIL_SAPHEADER_ID" = tgsh."TR_GI_SAPHEADER_ID"
+                            where
+                                    tgs."TR_GI_SAPDETAIL_GR_DETAIL_ID" = "LG_MATERIAL"."LG_MATERIAL_GR_DETAIL_ID"
+                                    and tgsh."TR_GI_SAPHEADER_IS_CANCELLED" is false
+                                    and tgs."TR_GI_SAPDETAIL_IS_CANCELLED" is false
+                                    and tgsh."TR_GI_SAPHEADER_PLANT_CODE" = "LG_MATERIAL"."LG_MATERIAL_PLANT_CODE"
+                                    )
+                            else \'-\'
                     end as "MAT_DOC"'),
                     "TR_GR_DETAIL_MATERIAL_NAME",
                     "TR_GR_DETAIL_BASE_UOM",
