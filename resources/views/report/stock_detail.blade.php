@@ -68,6 +68,11 @@ $(function () {
             
             @endphp
             @if(!empty($row["actual_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]]))
+            @php
+            if($act == 0){
+            continue;
+            }
+            @endphp
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $row["LG_MATERIAL_CODE"] }}</td>
