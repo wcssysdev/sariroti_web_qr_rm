@@ -790,20 +790,20 @@ class StockController extends Controller {
             $issued_balance = $this->get_issued_balance($request->plant_code, convert_to_y_m_d($sdate), convert_to_y_m_d($edate), $request->sloc_code, $request->material_code, TRUE);
 
             $gr_detail = $this->get_gr_detail($request->plant_code, convert_to_y_m_d($sdate), $request->sloc_code, $request->material_code, FALSE, convert_to_y_m_d($edate));
-            if (!empty($request->dump)) {
-                echo json_encode($request->sloc_code);
-                echo "<br/>";
-//                echo json_encode($sdate);
+//            if (!empty($request->dump)) {
+//                echo json_encode($request->sloc_code);
 //                echo "<br/>";
-//                echo json_encode($edate);
-                echo "<br/>";
-                echo "OB:" . json_encode($open_balance);
-                echo "<br/>";
-//                echo json_encode(convert_to_y_m_d($edate));
-                echo "<br/>";
-                echo "GR:" . json_encode($gr_detail);
-                echo "<br/>";
-            }
+////                echo json_encode($sdate);
+////                echo "<br/>";
+////                echo json_encode($edate);
+//                echo "<br/>";
+//                echo "OB:" . json_encode($open_balance);
+//                echo "<br/>";
+////                echo json_encode(convert_to_y_m_d($edate));
+//                echo "<br/>";
+//                echo "GR:" . json_encode($gr_detail);
+//                echo "<br/>";
+//            }
             $list_mat_code[$request->material_code] = 0;
             $nm_material = $this->get_mat_name($request->plant_code, array_keys($list_mat_code));
 
@@ -893,17 +893,42 @@ class StockController extends Controller {
                 }
             }
         }
+        $row_openings = [];
+        if ($open_balance) {
+            foreach ($open_balance as $dtopen) {
+                if($dtopen["actual_qty"] == 0){
+                    continue;
+                }
+                
+                if(!empty($dtopen["TR_GR_DETAIL_ID"])){
+                    $d_id = $dtopen["TR_GR_DETAIL_ID"];
+                }else{
+                    $d_id = 0;
+                }
+                $row_openings[$d_id]['TR_GR_DETAIL_ID'] = $d_id;
+                $row_openings[$d_id]['TR_GR_DETAIL_SLOC'] = $dtopen["TR_GR_DETAIL_SLOC"];
+                $row_openings[$d_id]['LG_MATERIAL_CODE'] = $dtopen["LG_MATERIAL_CODE"];
+                $row_openings[$d_id]['TR_GR_DETAIL_MATERIAL_NAME'] = $dtopen["TR_GR_DETAIL_MATERIAL_NAME"];
+                $row_openings[$d_id]['LG_MATERIAL_UOM'] = $dtopen["LG_MATERIAL_UOM"];
+                $row_openings[$d_id]['TR_GR_DETAIL_SAP_BATCH'] = $dtopen["TR_GR_DETAIL_SAP_BATCH"];
+                $row_openings[$d_id]['TR_GR_DETAIL_EXP_DATE'] = $dtopen["TR_GR_DETAIL_EXP_DATE"];
+                $row_openings[$d_id]['actual_qty'][$dtopen["TR_GR_DETAIL_SAP_BATCH"]][] = $dtopen["actual_qty"];
+                $row_openings[$d_id]['issued_qty'][$dtopen["TR_GR_DETAIL_SAP_BATCH"]][] = $dtopen["issued_qty"];
+                $row_openings[$d_id]['receipt_qty'][$dtopen["TR_GR_DETAIL_SAP_BATCH"]][] = $dtopen["receipt_qty"];
+            }
+        }
 //        $row_detail = array_values($row_detail);
         if (!empty($request->dump)) {
             echo "<br/>";
-            echo "OB2:" . json_encode($open_balance);
+            echo "OB2:" . json_encode($row_openings);
             echo "<br/>";
             echo "<br/>";
-            echo "GR:" . json_encode($row_detail);
+            echo "GR-ROW: " . json_encode($row_detail);
         }
 //        dd($open_balance);
         return view('report/stock_detail', [
             "open_balance" => $open_balance,
+            "row_openings" => $row_openings,
             "row_detail" => $row_detail,
             "start_date" => htmlentities($request->start_date),
             "end_date" => htmlentities($request->end_date),
@@ -1062,39 +1087,39 @@ class StockController extends Controller {
 //                echo "<br/>";    
 //                die();
 //}            
-            if(!empty($row["actual_qty"])){
-            if (!empty($row['TR_GR_DETAIL_ID']) && !empty($row_detail[$row['TR_GR_DETAIL_ID']])) {
-                $in = $row_detail[$row['TR_GR_DETAIL_ID']]['IN'];
-                $out = $row_detail[$row['TR_GR_DETAIL_ID']]['OUT'];
-                $act = $row["actual_qty"] + $in + $out;
-                unset($row_detail[$row['TR_GR_DETAIL_ID']]);
-            } else {
-                $in = $row["receipt_qty"];
-                $out = $row["issued_qty"];
-                $act = $row["actual_qty"];
-            }
+            if (!empty($row["actual_qty"])) {
+                if (!empty($row['TR_GR_DETAIL_ID']) && !empty($row_detail[$row['TR_GR_DETAIL_ID']])) {
+                    $in = $row_detail[$row['TR_GR_DETAIL_ID']]['IN'];
+                    $out = $row_detail[$row['TR_GR_DETAIL_ID']]['OUT'];
+                    $act = $row["actual_qty"] + $in + $out;
+                    unset($row_detail[$row['TR_GR_DETAIL_ID']]);
+                } else {
+                    $in = $row["receipt_qty"];
+                    $out = $row["issued_qty"];
+                    $act = $row["actual_qty"];
+                }
 
-            $sheet->setCellValue('A' . ($counter), $row["TR_GR_DETAIL_SLOC"]);
-            $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
-            $sheet->setCellValue('C' . ($counter), $row["TR_GR_DETAIL_MATERIAL_NAME"]);
-            $sheet->setCellValue('D' . ($counter), ($row["actual_qty"]));
-            $sheet->setCellValue('E' . ($counter), $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('F' . ($counter), ($in));
-            $sheet->setCellValue('G' . ($counter), $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('H' . ($counter), (abs($out)));
-            $sheet->setCellValue('I' . ($counter), $row["LG_MATERIAL_UOM"]);
-            $sheet->setCellValue('J' . ($counter), ($act));
-            $sheet->setCellValue('K' . ($counter), $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('A' . ($counter), $row["TR_GR_DETAIL_SLOC"]);
+                $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
+                $sheet->setCellValue('C' . ($counter), $row["TR_GR_DETAIL_MATERIAL_NAME"]);
+                $sheet->setCellValue('D' . ($counter), ($row["actual_qty"]));
+                $sheet->setCellValue('E' . ($counter), $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('F' . ($counter), ($in));
+                $sheet->setCellValue('G' . ($counter), $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('H' . ($counter), (abs($out)));
+                $sheet->setCellValue('I' . ($counter), $row["LG_MATERIAL_UOM"]);
+                $sheet->setCellValue('J' . ($counter), ($act));
+                $sheet->setCellValue('K' . ($counter), $row["LG_MATERIAL_UOM"]);
 
-            $sheet->setCellValue('L' . ($counter), (empty($row["TR_GR_DETAIL_SAP_BATCH"]) ? "" : $row["TR_GR_DETAIL_SAP_BATCH"]));
-            $sheet->setCellValue('M' . ($counter),convert_to_web_dmy($row["TR_GR_DETAIL_EXP_DATE"]));
-            if ($row['actual_qty'] > 0) {
-                $sheet->setCellValue('N' . ($counter), ($row["actual_qty"]));
-            } else {
-                $sheet->setCellValue('N' . ($counter), "-" . (abs($row["actual_qty"])));
-            }
-            $sheet->setCellValue('O' . ($counter), $row["LG_MATERIAL_UOM"]);
-            $counter++;
+                $sheet->setCellValue('L' . ($counter), (empty($row["TR_GR_DETAIL_SAP_BATCH"]) ? "" : $row["TR_GR_DETAIL_SAP_BATCH"]));
+                $sheet->setCellValue('M' . ($counter), convert_to_web_dmy($row["TR_GR_DETAIL_EXP_DATE"]));
+                if ($row['actual_qty'] > 0) {
+                    $sheet->setCellValue('N' . ($counter), ($row["actual_qty"]));
+                } else {
+                    $sheet->setCellValue('N' . ($counter), "-" . (abs($row["actual_qty"])));
+                }
+                $sheet->setCellValue('O' . ($counter), $row["LG_MATERIAL_UOM"]);
+                $counter++;
             }
 
             foreach ($row_detail as $dt_detail) {
