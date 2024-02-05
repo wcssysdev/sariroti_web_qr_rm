@@ -12,14 +12,14 @@ class StockController extends Controller {
 
     public function get_opening_balance($plant_code, $start_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
-            "table_name" => "LG_MATERIAL",
+            "table_name" => "LG_MATERIAL_NEW",
             "join" => [
                 [
                     "join_type" => "inner",
                     "table_name" => "TR_GR_DETAIL",
                     "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                     "operator" => "=",
-                    "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
+                    "on2" => "LG_MATERIAL_NEW.LG_MATERIAL_GR_DETAIL_ID",
                 ]
             ],
             "where" => [
@@ -62,7 +62,7 @@ class StockController extends Controller {
 //            $statement['group_by'][] = "TR_GR_DETAIL_EXP_DATE";
 //            $statement['group_by'][] = "TR_GR_DETAIL_LEFT_QTY";
         } else {
-            $statement['select'][] = DB::raw('SUM("LG_MATERIAL"."LG_MATERIAL_QTY") as ACTUAL_QTY');
+            $statement['select'][] = DB::raw('SUM("LG_MATERIAL_NEW"."LG_MATERIAL_QTY") as ACTUAL_QTY');
             $statement['select'][] = "LG_MATERIAL_CODE";
             $statement['select'][] = "LG_MATERIAL_UOM";
             $statement['group_by'][] = "LG_MATERIAL_CODE";
@@ -94,14 +94,14 @@ class StockController extends Controller {
     public function get_receipt_balance($plant_code, $start_date, $end_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
             "select" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM"],
-            "table_name" => "LG_MATERIAL",
+            "table_name" => "LG_MATERIAL_NEW",
             "join" => [
                 [
                     "join_type" => "inner",
                     "table_name" => "TR_GR_DETAIL",
                     "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                     "operator" => "=",
-                    "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
+                    "on2" => "LG_MATERIAL_NEW.LG_MATERIAL_GR_DETAIL_ID",
                 ]
             ],
             "where" => [
@@ -167,14 +167,14 @@ class StockController extends Controller {
     public function get_issued_balance($plant_code, $start_date, $end_date, $sloc_code = "", $mat_code = "", $is_detail = FALSE) {
         $statement = [
             "select" => ["TR_GR_DETAIL_SLOC", "LG_MATERIAL_CODE", "LG_MATERIAL_UOM"],
-            "table_name" => "LG_MATERIAL",
+            "table_name" => "LG_MATERIAL_NEW",
             "join" => [
                 [
                     "join_type" => "inner",
                     "table_name" => "TR_GR_DETAIL",
                     "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                     "operator" => "=",
-                    "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
+                    "on2" => "LG_MATERIAL_NEW.LG_MATERIAL_GR_DETAIL_ID",
                 ]
             ],
             "where" => [
@@ -281,10 +281,10 @@ class StockController extends Controller {
                 ],
                 [
                     "join_type" => "inner",
-                    "table_name" => "LG_MATERIAL",
+                    "table_name" => "LG_MATERIAL_NEW",
                     "on1" => "TR_GR_DETAIL.TR_GR_DETAIL_ID",
                     "operator" => "=",
-                    "on2" => "LG_MATERIAL.LG_MATERIAL_GR_DETAIL_ID",
+                    "on2" => "LG_MATERIAL_NEW.LG_MATERIAL_GR_DETAIL_ID",
                 ]
             ],
             "where" => [
@@ -925,6 +925,7 @@ class StockController extends Controller {
             echo "<br/>";
             echo "GR-ROW: " . json_encode($row_detail);
         }
+//        die();
 //        dd($open_balance);
         return view('report/stock_detail', [
             "open_balance" => $open_balance,

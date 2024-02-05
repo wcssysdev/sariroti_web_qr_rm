@@ -1220,7 +1220,7 @@ function get_tp_material($params = NULL) {
 
 function insert_material_log($array_data) {
     return std_insert([
-        "table_name" => "LG_MATERIAL",
+        "table_name" => "LG_MATERIAL_NEW",
         "data" => [
             "LG_MATERIAL_CODE" => $array_data["material_code"],
             "LG_MATERIAL_PLANT_CODE" => $array_data["plant_code"],
