@@ -1089,17 +1089,23 @@ class StockController extends Controller {
 //                die();
 //}            
             if (!empty($row["actual_qty"])) {
+                $sisa = 0;
                 if (!empty($row['TR_GR_DETAIL_ID']) && !empty($row_detail[$row['TR_GR_DETAIL_ID']])) {
                     $in = $row_detail[$row['TR_GR_DETAIL_ID']]['IN'];
                     $out = $row_detail[$row['TR_GR_DETAIL_ID']]['OUT'];
+                    $sisa = $in + $out;
                     $act = $row["actual_qty"] + $in + $out;
                     unset($row_detail[$row['TR_GR_DETAIL_ID']]);
                 } else {
                     $in = $row["receipt_qty"];
                     $out = $row["issued_qty"];
+                    $sisa = $in + $out;
                     $act = $row["actual_qty"];
                 }
 
+                if($sisa == 0){
+                    continue;
+                }
                 $sheet->setCellValue('A' . ($counter), $row["TR_GR_DETAIL_SLOC"]);
                 $sheet->setCellValue('B' . ($counter), $row["LG_MATERIAL_CODE"]);
                 $sheet->setCellValue('C' . ($counter), $row["TR_GR_DETAIL_MATERIAL_NAME"]);
@@ -1126,6 +1132,9 @@ class StockController extends Controller {
             foreach ($row_detail as $dt_detail) {
                 $closing = $dt_detail['IN'] + $dt_detail['OUT'];
 
+                if($closing == 0){
+                    continue;
+                }
                 $sheet->setCellValue('A' . ($counter), $dt_detail["TR_GR_DETAIL_SLOC"]);
                 $sheet->setCellValue('B' . ($counter), $dt_detail["TR_GR_DETAIL_MATERIAL_CODE"]);
                 $sheet->setCellValue('C' . ($counter), $dt_detail["TR_GR_DETAIL_MATERIAL_NAME"]);

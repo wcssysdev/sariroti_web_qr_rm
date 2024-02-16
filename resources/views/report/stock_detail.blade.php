@@ -54,21 +54,27 @@ $(function () {
             </tr>
             @foreach ($row_openings as $row)
             @php
+            $sisa = 0;
             if(!empty($row['TR_GR_DETAIL_ID']) && !empty($row_detail[$row['TR_GR_DETAIL_ID']])){
             $in = $row_detail[$row['TR_GR_DETAIL_ID']]['IN'];
             $out = $row_detail[$row['TR_GR_DETAIL_ID']]['OUT'];
             
-            $act = array_sum($row["actual_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]])+$in+$out;
+            $act = array_sum($row["actual_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]]) + $in + $out;
+            $sisa = $in + $out;
             unset($row_detail[$row['TR_GR_DETAIL_ID']]);
             }else{
             $in = array_sum($row["receipt_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]]);
             $out = array_sum($row["issued_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]]);
-            $act = array_sum($row["actual_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]]);
+            $sisa = $in + $out;
+            $act = array_sum($row["actual_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]]) + $in + $out;
             }
             
             @endphp
             @if(!empty($row["actual_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]]))
             @php
+            if($sisa == 0){
+            continue;
+            }
             @endphp
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
@@ -98,6 +104,7 @@ $(function () {
             @php
             $closing = $dt_detail['IN'] + $dt_detail['OUT'];
             @endphp
+            @if($closing !== 0)
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $dt_detail["TR_GR_DETAIL_SLOC"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $dt_detail["TR_GR_DETAIL_MATERIAL_CODE"] }}</td>
@@ -114,6 +121,7 @@ $(function () {
                 <td style="text-align:right; padding: 5px;">{{ "-". number_format(abs($closing), 2)." ".$dt_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>
                 @endif                
             </tr>            
+            @endif
             @endforeach
             @endif
         </table>
