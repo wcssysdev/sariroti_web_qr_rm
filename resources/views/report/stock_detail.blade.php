@@ -69,9 +69,6 @@ $(function () {
             @endphp
             @if(!empty($row["actual_qty"][$row["TR_GR_DETAIL_SAP_BATCH"]]))
             @php
-            if($act == 0){
-            continue;
-            }
             @endphp
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $row["TR_GR_DETAIL_SLOC"] }}</td>
@@ -84,7 +81,7 @@ $(function () {
                 <td style="text-align:center; padding: 5px;">{{ (empty($row["TR_GR_DETAIL_SAP_BATCH"])?"":$row["TR_GR_DETAIL_SAP_BATCH"]) }}</td>
                 @if(!empty($row["TR_GR_DETAIL_EXP_DATE"]) != 0)
                 <td style="text-align:center; padding: 5px;">{{ convert_to_web_dmy($row["TR_GR_DETAIL_EXP_DATE"]) }}</td>
-                @if($act > 0)
+                @if($act >= 0)
                 <td style="text-align:right; padding: 5px;">{{ number_format($act, 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
                 @else
                 <td style="text-align:right; padding: 5px;">{{ "-". number_format(abs($act), 2)." ".$row["LG_MATERIAL_UOM"] }}</td>
@@ -101,7 +98,6 @@ $(function () {
             @php
             $closing = $dt_detail['IN'] + $dt_detail['OUT'];
             @endphp
-            @if($closing !== 0)
             <tr>
                 <td style="text-align:center; padding: 5px;">{{ $dt_detail["TR_GR_DETAIL_SLOC"] }}</td>
                 <td style="text-align:center; padding: 5px;">{{ $dt_detail["TR_GR_DETAIL_MATERIAL_CODE"] }}</td>
@@ -118,7 +114,6 @@ $(function () {
                 <td style="text-align:right; padding: 5px;">{{ "-". number_format(abs($closing), 2)." ".$dt_detail["TR_GR_DETAIL_BASE_UOM"] }}</td>
                 @endif                
             </tr>            
-            @endif
             @endforeach
             @endif
         </table>

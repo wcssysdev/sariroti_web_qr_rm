@@ -293,11 +293,11 @@ class StockController extends Controller {
                     "operator" => "=",
                     "value" => $plant_code
                 ],
-                [
-                    "field_name" => "TR_GR_DETAIL_LEFT_QTY",
-                    "operator" => ">",
-                    "value" => 0
-                ],
+//                [
+//                    "field_name" => "TR_GR_DETAIL_LEFT_QTY",
+//                    "operator" => ">",
+//                    "value" => 0
+//                ],
                 [
                     "field_name" => "TR_GR_HEADER_IS_ADJUSTMENT",
                     "operator" => "=",
@@ -1114,10 +1114,10 @@ class StockController extends Controller {
 
                 $sheet->setCellValue('L' . ($counter), (empty($row["TR_GR_DETAIL_SAP_BATCH"]) ? "" : $row["TR_GR_DETAIL_SAP_BATCH"]));
                 $sheet->setCellValue('M' . ($counter), convert_to_web_dmy($row["TR_GR_DETAIL_EXP_DATE"]));
-                if ($row['actual_qty'] > 0) {
-                    $sheet->setCellValue('N' . ($counter), ($row["actual_qty"]));
+                if ($act >= 0) {
+                    $sheet->setCellValue('N' . ($counter), ($act));
                 } else {
-                    $sheet->setCellValue('N' . ($counter), "-" . (abs($row["actual_qty"])));
+                    $sheet->setCellValue('N' . ($counter), "-" . (abs($act)));
                 }
                 $sheet->setCellValue('O' . ($counter), $row["LG_MATERIAL_UOM"]);
                 $counter++;
