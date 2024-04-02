@@ -313,21 +313,39 @@ class GoodIssueController extends Controller {
                             "status" => "Bad Request",
                             "data" => [
                                 "gr_detail_data" => []
-                            ]
+                            ],
+                            "message" => "GR DETAIL ID is required.",
+                            "param" => "TR_GR_DETAIL_QR_CODE_NUMBER"
+                                ], 400);
+            }
+            if (empty($request->TR_GR_DETAIL_UNLOADING_PLANT)) {
+                return response()->json([
+                            "status" => "Bad Request",
+                            "data" => [
+                                "gr_detail_data" => []
+                            ],
+                            "message" => "PLANT CODE is required.",
+                            "param" => "TR_GR_DETAIL_UNLOADING_PLANT"
                                 ], 400);
             }
 
 
-            $gr_detail_data = std_get([
-                "select" => ["*"],
-                "table_name" => "TR_GR_DETAIL",
-                "where" => [
+            $where = [
                     [
                         "field_name" => "TR_GR_DETAIL_QR_CODE_NUMBER",
                         "operator" => "=",
                         "value" => $request->TR_GR_DETAIL_QR_CODE_NUMBER
-                    ]
-                ],
+                    ],
+                    [
+                        "field_name" => "TR_GR_DETAIL_UNLOADING_PLANT",
+                        "operator" => "=",
+                        "value" => $request->TR_GR_DETAIL_UNLOADING_PLANT
+                    ],
+            ];
+            $gr_detail_data = std_get([
+                "select" => ["*"],
+                "table_name" => "TR_GR_DETAIL",
+                "where" => $where,
                 "first_row" => true
             ]);
 
